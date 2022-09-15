@@ -1,6 +1,6 @@
 import ResourceOwnerPassword from simple-oauth2;
-import * from validator;
-import * from axios;
+import 'validator.js';
+const axios = require('axios');
 
 class ApiClient {
 	constructor (client_id = null, client_secret = null) {
@@ -17,7 +17,7 @@ class ApiClient {
 		this.tokenParams = null;
 		this.accessToken = null;
 		this.axiosInstance = axios.create({
-			baseUrl: "http://qlf-collaboratif.ign.fr/collaboratif-develop/gcms/api"
+			baseUrl: "http://localhost/collaboratif/gcms/api" //@TODO as parameter
 		})
 	}
 

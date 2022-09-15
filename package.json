@@ -16,6 +16,7 @@
   "author": "mjacopucci",
   "license": "Propriétaire",
   "dependencies": {
-    "axios": "^0.27.2"
+    "axios": "^0.27.2",
+    "simple-oauth2": "^4.3.0"
   }
 }
