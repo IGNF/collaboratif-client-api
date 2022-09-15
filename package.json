@@ -1,0 +1,21 @@
+{
+  "name": "collaboratif-client-api",
+  "version": "1.0.0",
+  "description": "Interagir avec l'api collaboratif et gerer l authentification",
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@gitlab.dockerforge.ign.fr:10022/collaboratif/collaboratif-client-api.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "collaboratif",
+    "api"
+  ],
+  "author": "mjacopucci",
+  "license": "Propriétaire",
+  "dependencies": {
+    "axios": "^0.27.2"
+  }
+}

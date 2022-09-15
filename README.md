@@ -1,0 +1,1 @@
+Module permettant d'intéragir avec l'api du collaboratif et de gérer l'authentification
