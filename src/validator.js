@@ -1,5 +1,5 @@
 const parameters = {
-	"allUsers": {
+	"allUsers": [
 		"sort",
 		"fields",
 		"page",
@@ -8,14 +8,14 @@ const parameters = {
 		"surname",
 		"firstname",
 		"email"
-	},
-	"getUser": {
+	],
+	"getUser": [
 		"fields"
-	}
+	]
 };
 
 function validateParams(params, fct) {
 	for (var i in params) {
-		if (parameters[fct].indexOf(params[i]) throw 'Invalid parameter ' +params[i]+ ': must be in [' +parameters[fct].concat(', ')+ ']';
+		if (parameters[fct].indexOf(params[i]) == -1) throw 'Invalid parameter ' +params[i]+ ': must be in [' +parameters[fct].concat(', ')+ ']';
 	}
 }

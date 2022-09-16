@@ -1,9 +1,10 @@
-import {ResourceOwnerPassword} from simple-oauth2;
-import 'validator.js';
+import './validator.js';
+import * as CryptoJS from 'crypto-js';
 const axios = require('axios');
+const {ResourceOwnerPassword} = require('simple-oauth2');
 
 class ApiClient {
-	constructor (client_id = null, client_secret = null) {
+	constructor (authBaseUrl, apiBaseUrl, client_id = null, client_secret = null) {
 		if(ApiClient._instance) return ApiClient._instance;
 		this.config_auth = {
 			client: {
@@ -11,27 +12,39 @@ class ApiClient {
 				secret: client_secret
 			},
 			auth: {
-				tokenHost: 'http://127.0.0.1:8080/auth/realms/test/protocol/openid-connect/' //@TODO as parameter
+				tokenHost: authBaseUrl
 			}
 		};
-		this.tokenParams = null;
+		if (typeof(process) !== 'undefined' && typeof(process.env.SECRET) !== 'undefined' && process.env.SECRET){
+			this.secret = process.env.secret
+		} else {
+			this.secret = "A secret not so secret"
+		}
 		this.accessToken = null;
+		this.user = null;
+		this.password = null;
 		this.axiosInstance = axios.create({
-			baseUrl: "http://localhost/collaboratif/gcms/api" //@TODO as parameter
+			baseUrl: apiBaseUrl
 		})
 	}
 
 	setCredentials(username, password) {
-		this.tokenParams = {
-			username: username,
-			password: password,
+		this.user = username;
+		this.password = CryptoJS.AES.encrypt(password, this.secret).toString();
+	}
+
+	getTokenParams() {
+		if (!this.user || !this.password) return null
+		return tokenParams = {
+			username: this.user,
+			password: CryptoJS.AES.decrypt(this.password, this.secret).toString(CryptoJS.enc.Utf8),
 			scope: "openid"
 		}
 	}
 
 	async fetchToken() {
 		if (!this.config_auth) throw 'ApiClient must have a client_id and a client_secret';
-		if (!this.tokenParams) throw 'Have to set credentials first';
+		if (!this.getTokenParams()) throw 'Have to set credentials first';
 		if (!this.accessToken) {
 			let client = new ResourceOwnerPassword(this.config_auth);
 			try {
@@ -56,8 +69,8 @@ class ApiClient {
 		try{
 			this.tokenParams = null;
 			await this.accessToken.revokeAll();
-		catch (error) {
-			throw 'Error revoking access token': + error.message;
+		} catch (error) {
+			throw 'Error revoking access token:' + error.message;
 		}
 	}
 	
@@ -85,3 +98,5 @@ class ApiClient {
 		return user;
 	}
 }
+
+export {ApiClient}
