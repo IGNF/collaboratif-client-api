@@ -1,4 +1,4 @@
-import ResourceOwnerPassword from simple-oauth2;
+import {ResourceOwnerPassword} from simple-oauth2;
 import 'validator.js';
 const axios = require('axios');
 
