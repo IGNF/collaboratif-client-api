@@ -19,3 +19,5 @@ function validateParams(params, fct) {
 		if (parameters[fct].indexOf(params[i]) == -1) throw 'Invalid parameter ' +params[i]+ ': must be in [' +parameters[fct].concat(', ')+ ']';
 	}
 }
+
+export {validateParams};
