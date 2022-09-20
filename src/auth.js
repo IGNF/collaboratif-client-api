@@ -18,21 +18,23 @@ class AuthClient {
 
     isTokenExpired() {
 		if (!this.expirationDate) return true;
-        if (Date.now() > this.expirationDate) return true;
+        if (new Date() > this.expirationDate) return true;
 		return false;
     }
 
 	isTokenRefreshExpired() {
 		if (!this.refreshExpirationDate) return true;
-		if (Date.now() > this.refreshExpirationDate) return true;
+		if (new Date() > this.refreshExpirationDate) return true;
 		return false;
 	}
 
     setExpirationDates(tokenExpiresIn, refreshTokenExpiresIn) {
-		let now = Date.now();
-        this.expirationDate = now.setSeconds(now.getSeconds() + tokenExpiresIn);
-		now = Date.now();
-		this.refreshExpirationDate = now.setSeconds(now.getSeconds() + refreshTokenExpiresIn);
+		let expirationDate = new Date();
+		expirationDate.setSeconds(expirationDate.getSeconds() + tokenExpiresIn);
+        this.expirationDate = expirationDate;
+		let refreshExpirationDate = new Date();
+		refreshExpirationDate.setSeconds(refreshExpirationDate.getSeconds() + refreshTokenExpiresIn);
+		this.refreshExpirationDate = refreshExpirationDate;
     }
 
 	processTokenResponse(response) {
@@ -51,7 +53,8 @@ class AuthClient {
 			'scope': 'openid',
 			'grant_type': 'password'
 		}
-		return await this.axiosInstance.post('/token', tokenParams);
+		const params = new URLSearchParams(tokenParams);
+		return await this.axiosInstance.post('/token', params);
 	}
 
 	async getRefreshToken() {
@@ -63,7 +66,8 @@ class AuthClient {
 			'refresh_token': this.refreshToken,
 			'grant_type': 'refresh_token'
 		}
-		return await this.axiosInstance.post('/token', tokenParams);
+		const params = new URLSearchParams(tokenParams);
+		return await this.axiosInstance.post('/token', params);
 	}
 
     async fetchToken(credentials) {
@@ -71,7 +75,7 @@ class AuthClient {
 		if (!this.token || (this.isTokenExpired() && this.isTokenRefreshExpired())) {
 			try {
 				let tokenResp = await this.getPrimaryToken(credentials);
-				this.processTokenResponse(tokenResp);
+				this.processTokenResponse(tokenResp.data);
 				return this.token;
 			} catch (error) {
 				throw 'Access Token Error: ' + error.message;
@@ -79,7 +83,7 @@ class AuthClient {
 		} else if (this.isTokenExpired() && !this.isTokenRefreshExpired()) {
 			try {
 				let tokenResp = await this.getRefreshToken();
-				this.processTokenResponse(tokenResp);
+				this.processTokenResponse(tokenResp.data);
 				return this.token;
 			} catch (error) {
 				throw 'Error refreshing access token: ' + error.message;
@@ -97,7 +101,8 @@ class AuthClient {
 					'client_secret': this.clientSecret,
 					'token': this.token
 				}
-				await this.axiosInstance.post('/revoke', revokeParams);
+				const params = new URLSearchParams(revokeParams);
+				await this.axiosInstance.post('/revoke', params);
 			}
 			
 			this.token = null;
