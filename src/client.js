@@ -1,5 +1,5 @@
 import {AuthClient} from './auth.js';
-import {validateParams} from './validator.js';
+import * as validator from './validator/validator.js';
 import * as CryptoJS from 'crypto-js';
 const axios = require('axios');
 
@@ -31,14 +31,68 @@ class ApiClient {
 	}
 	
 	async allUsers(parameters = []) {
-		validateParams(parameters);
+		validator.validateParams(parameters, 'allUsers');
 		return this.doGetRequest('/users', parameters);
 	}
 	
 	async getUser(id="me", parameters = []) {
 		if (id != "me" && (isNaN(parseInt(id)) || parseInt(id) < 0)) throw 'id must be "me" or positive number'
-		validateParams(parameters);
+		validator.validateParams(parameters, 'getUser');
 		let url = '/users/'+id;
+		return await this.doGetRequest(url, parameters);
+	}
+
+	async allDatabases(parameters = []) {
+		validator.validateParams(parameters, 'allDatabases');
+		return this.doGetRequest('/databases', parameters);
+	}
+	
+	async getDatabase(id, parameters = []) {
+		validator.validateId(id)
+		validator.validateParams(parameters, 'getDatabase');
+		let url = '/databases/'+id;
+		return await this.doGetRequest(url, parameters);
+	}
+
+	async allCommunities(parameters = []) {
+		validator.validateParams(parameters, 'allCommunities');
+		return this.doGetRequest('/communities', parameters);
+	}
+	
+	async getCommunity(id, parameters = []) {
+		validator.validateId(id)
+		validator.validateParams(parameters, 'getCommunity');
+		let url = '/communities/'+id;
+		return await this.doGetRequest(url, parameters);
+	}
+
+	async allLayers(communityId, parameters = []) {
+		validator.validateId(communityId);
+		validator.validateParams(parameters, 'allLayers');
+		let url = '/communities'+communityId+'/layers';
+		return this.doGetRequest(url, parameters);
+	}
+	
+	async getLayer(communityId, layerId, parameters = []) {
+		validator.validateId(communityId);
+		validator.validateId(layerId);
+		validator.validateParams(parameters, 'getLayer');
+		let url = '/communities'+communityId+'/layers/'+id;
+		return await this.doGetRequest(url, parameters);
+	}
+
+	async allMembers(communityId, parameters = []) {
+		validator.validateId(communityId);
+		validator.validateParams(parameters, 'allMembers');
+		let url = '/communities'+communityId+'/members';
+		return this.doGetRequest(url, parameters);
+	}
+	
+	async getMember(communityId, memberId, parameters = []) {
+		validator.validateId(communityId);
+		validator.validateId(memberId);
+		validator.validateParams(parameters, 'getMember');
+		let url = '/communities'+communityId+'/members'+id;
 		return await this.doGetRequest(url, parameters);
 	}
 
