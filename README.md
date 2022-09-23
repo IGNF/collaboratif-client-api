@@ -1,17 +1,23 @@
+## Introduction
+
 Module permettant d'intéragir avec l'api du collaboratif et de gérer l'authentification
 Dépendances axios (http client utilisant les promesses) et crypto-js pour encrypter le mot de passe utilisateur
 Si définie, la variable d'environnement SECRET est utilisée pour l'encryptage
 
+## Installation
+
+npm install http://gitlab.dockerforge.ign.fr/collaboratif/collaboratif-client-api.git
+
 Vous devez autoriser les requêtes CORS vers le domaine .ign.fr et vers l'api d'authentification. Exemple pour cordova, dans le fichier config.xml, ajouter:
 
-<pre>
+```
 <allow-navigation href="*://*.ign.fr/*" />
 <allow-navigation href="https://iam-ign-qa.cegedim.cloud/*" />
-</pre>
+```
 
-Exemple d'utilisation:
+## Exemple d'utilisation:
 
-<pre>
+```
 <script type="text/javascript">
 import {ApiClient} from 'collaboratif-client-api';
 
@@ -31,7 +37,11 @@ let unautreClient = new ApiClient();
 unautreClient.getCommunities({"limit": 2}).then((communities) => console.log(communities[0])) //récupération de 2 groupes et affichage du premier
 
 </script>
-</pre>
+```
 
-Une validation sur les paramètres existants est effectuée et sur les paramètres obligatoires à fournir dans le body. Il faudrait ajouter de la validation sur tous les paramètres. Par exemple quand il y a une liste de choix, ou pour la bbox valider la syntaxe etc... Ca permettrait d'éviter les requêtes inutiles qui vont finir en 400 si la requête est mal formatée.
-Toutes les routes ne sont pas encore présentes, il est possible dans rajouter sur le même modèle ou bien d'utiliser directement la route doRequest du client. (ex: apiClient.doRequest("/communities", "get", null, {"limit": 2}))
+On peut également directement utiliser la route doRequest du client si le raccourci n'est pas défini. (ex: apiClient.doRequest("/communities", "get", null, {"limit": 2}))
+
+## Et ensuite
+
+Une validation sur les paramètres existants est effectuée et sur les paramètres obligatoires à fournir dans le body. Il faudrait ajouter de la validation sur tous les paramètres. Par exemple quand il y a une liste de choix, ou valider la syntaxe pour la bbox etc... Ca permettra d'éviter les requêtes inutiles qui vont finir en 400 si la requête est mal formatée.
+Toutes les routes ne sont pas encore présentes, il faudra compléter.
