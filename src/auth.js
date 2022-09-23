@@ -1,6 +1,16 @@
 const axios = require('axios');
 
+/**
+ * Gestionnaire d'authentification
+ * Récupération du token, rafraîchissement, révocation
+ */
 class AuthClient {
+	/**
+	 * @constructor
+	 * @param {String} baseUrl ex: https://iam-url/auth/realms/demo/protocol/openid-connect
+	 * @param {String} clientId 
+	 * @param {String} clientSecret 
+	 */
     constructor (baseUrl, clientId, clientSecret) {
         if (!baseUrl) throw 'An authentication url must be provided'
         if (!clientId) throw 'A clientId must be provided'
@@ -16,18 +26,31 @@ class AuthClient {
 		})
     }
 
+	/**
+	 * Renvoie true si le token n'est plus valide, false sinon
+	 * @returns {Boolean}
+	 */
     isTokenExpired() {
 		if (!this.expirationDate) return true;
         if (new Date() > this.expirationDate) return true;
 		return false;
     }
 
+	/**
+	 * Renvoie true si le refresh token n'est plus valide, false sinon
+	 * @returns {Boolean}
+	 */
 	isTokenRefreshExpired() {
 		if (!this.refreshExpirationDate) return true;
 		if (new Date() > this.refreshExpirationDate) return true;
 		return false;
 	}
 
+	/**
+	 * Calcule et stocke les dates d'expiration du token et du refresh token
+	 * @param {Integer} tokenExpiresIn le nombre de secondes dans lesquelles le token va expirer
+	 * @param {Integer} refreshTokenExpiresIn le nombre de secondes dans lesquelles le refresh token va expirer
+	 */
     setExpirationDates(tokenExpiresIn, refreshTokenExpiresIn) {
 		let expirationDate = new Date();
 		expirationDate.setSeconds(expirationDate.getSeconds() + tokenExpiresIn);
@@ -37,12 +60,22 @@ class AuthClient {
 		this.refreshExpirationDate = refreshExpirationDate;
     }
 
+	/**
+	 * Calcule et stoke toutes les informations à récupérer à la suite d'une demande de token: 
+	 * le token, le refresh token et les dates d'expiration
+	 * @param {Object} response 
+	 */
 	processTokenResponse(response) {
 		this.setExpirationDates(response['expires_in'], response['refresh_expires_in']);
 		this.token = response['access_token'];
 		this.refreshToken = response['refresh_token'];
 	}
 
+	/**
+	 * Requête de base de récupération du token
+	 * @param {Object} credentials ex: {"username": "moi", "password": "topsecret"}
+	 * @return {Promise}
+	 */
 	async getPrimaryToken(credentials) {
 		if (!credentials['username'] || !credentials['password']) throw 'Credentials must be provided';
 		let tokenParams = {
@@ -57,6 +90,11 @@ class AuthClient {
 		return await this.axiosInstance.post('/token', params);
 	}
 
+	/**
+	 * Requête de rafraîchissement du token
+	 * Besoin d'un refreshToken renseigné et valide
+	 * @returns {Promise}
+	 */
 	async getRefreshToken() {
 		if (!this.refreshToken) throw 'No refresh token found';
 		let tokenParams = {
@@ -70,6 +108,14 @@ class AuthClient {
 		return await this.axiosInstance.post('/token', params);
 	}
 
+	/**
+	 * Récupère un token selon les 3 configurations possibles:
+	 * Il n'existe pas ou il a expiré avec le refresh token
+	 * Il a expiré mais le refresh token est encore valable
+	 * Il n'a pas expiré
+	 * @param {Object} credentials ex: {"username": "moi", "password": "topsecret"}
+	 * @returns {Promise} la reponse contient la valeur du token seule
+	 */
     async fetchToken(credentials) {
 		if (!credentials) throw 'Have to set credentials first';
 		if (!this.token || (this.isTokenExpired() && this.isTokenRefreshExpired())) {
@@ -93,6 +139,10 @@ class AuthClient {
 		}
 	}
 	
+	/**
+	 * Force l'expiration du token et du refreshToken
+	 * @return {Promise} contient le resultat de la requete revoke
+	 */
 	async disconnect() {
 		try{
 			if (!this.isTokenExpired()){

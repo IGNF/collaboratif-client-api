@@ -3,7 +3,19 @@ import * as validator from './validator/validator.js';
 import * as CryptoJS from 'crypto-js';
 const axios = require('axios');
 
+/**
+ * Entrée de l'api cliente.
+ * Cette classe est un singleton. Permiet de ne pas renseigner tous les paramètres de clientId... a chaque fois qu'on veut faire appel a l'api
+ * Toutes les fonctions sont des raccourcis de la méthode doRequest
+ */
 class ApiClient {
+	/**
+	 * @constructor
+	 * @param {String} authBaseUrl ex: https://iam-url/auth/realms/demo/protocol/openid-connect
+	 * @param {String} apiBaseUrl ex: https://espacecollaboratif.ign.fr/gcms/api
+	 * @param {String} clientId 
+	 * @param {String} clientSecret 
+	 */
 	constructor (authBaseUrl = null, apiBaseUrl = null, clientId = null, clientSecret = null) {
 		if(ApiClient._instance) return ApiClient._instance;
 		if (!authBaseUrl || !apiBaseUrl || !clientId || !clientSecret) throw 'Mandatory parameters are: authBaseUrl, apiBaseUrl, clientId, clientSecret'
@@ -22,6 +34,12 @@ class ApiClient {
 		})
 	}
 
+	/**
+	 * On stocke les informations de l utilisateur pour pouvoir récupérer le token
+	 * Le mot de passe est stocké encrypté (la variable d'environement SECRET est utilisée si elle est settée)
+	 * @param {String} username 
+	 * @param {String} password le mot de passe en clair
+	 */
 	setCredentials(username, password) {
 		if (!username) throw 'No user provided';
 		if (!password) throw 'No password provided';
@@ -29,86 +47,830 @@ class ApiClient {
 		this.password = CryptoJS.AES.encrypt(password, this.secret).toString();
 		if (this.username && username != this.username) this.disconnect();
 	}
-	
-	async allUsers(parameters = []) {
-		validator.validateParams(parameters, 'allUsers');
-		return this.doGetRequest('/users', parameters);
-	}
-	
-	async getUser(id="me", parameters = []) {
-		if (id != "me" && (isNaN(parseInt(id)) || parseInt(id) < 0)) throw 'id must be "me" or positive number'
-		validator.validateParams(parameters, 'getUser');
-		let url = '/users/'+id;
-		return await this.doGetRequest(url, parameters);
-	}
 
-	async allDatabases(parameters = []) {
-		validator.validateParams(parameters, 'allDatabases');
-		return this.doGetRequest('/databases', parameters);
-	}
-	
-	async getDatabase(id, parameters = []) {
-		validator.validateId(id)
-		validator.validateParams(parameters, 'getDatabase');
-		let url = '/databases/'+id;
-		return await this.doGetRequest(url, parameters);
-	}
-
-	async allCommunities(parameters = []) {
-		validator.validateParams(parameters, 'allCommunities');
-		return this.doGetRequest('/communities', parameters);
-	}
-	
-	async getCommunity(id, parameters = []) {
-		validator.validateId(id)
-		validator.validateParams(parameters, 'getCommunity');
-		let url = '/communities/'+id;
-		return await this.doGetRequest(url, parameters);
-	}
-
-	async allLayers(communityId, parameters = []) {
-		validator.validateId(communityId);
-		validator.validateParams(parameters, 'allLayers');
-		let url = '/communities'+communityId+'/layers';
-		return this.doGetRequest(url, parameters);
-	}
-	
-	async getLayer(communityId, layerId, parameters = []) {
-		validator.validateId(communityId);
-		validator.validateId(layerId);
-		validator.validateParams(parameters, 'getLayer');
-		let url = '/communities'+communityId+'/layers/'+id;
-		return await this.doGetRequest(url, parameters);
-	}
-
-	async allMembers(communityId, parameters = []) {
-		validator.validateId(communityId);
-		validator.validateParams(parameters, 'allMembers');
-		let url = '/communities'+communityId+'/members';
-		return this.doGetRequest(url, parameters);
-	}
-	
-	async getMember(communityId, memberId, parameters = []) {
-		validator.validateId(communityId);
-		validator.validateId(memberId);
-		validator.validateParams(parameters, 'getMember');
-		let url = '/communities'+communityId+'/members'+id;
-		return await this.doGetRequest(url, parameters);
-	}
-
-	async doGetRequest(url, parameters) {
+	/**
+	 * Fait une requête vers l'api collaborative
+	 * @param {String} url l'url relative qui nous intéresse. ex: /users
+	 * @param {String} method get/post/patch/put/relete
+	 * @param {Object} body les paramètres post 
+	 * @param {Object} params les paramètres get
+	 * @returns {Promise}
+	 */
+	async doRequest(url, method, body = null, params = null) {
 		if (!this.username || !this.password) throw 'Have to set credentials first'
 		let credentials = {
 			username: this.username,
 			password: CryptoJS.AES.decrypt(this.password, this.secret).toString(CryptoJS.enc.Utf8)
 		};
 		let accessToken = await this.clientAuth.fetchToken(credentials);
+		
+		let config = {
+			url: url,
+			method: method,
+			headers: {'Authorization': 'Bearer '+accessToken},
+			params: params
+		};
+		if (body) config.data = body;
+		let response = await this.axiosInstance.request(config);
+		if ('data' in response) {
+			return response.data;
+		} else {
+			return response;
+		}
+	}
+	
+	/**
+	 * Récupère tous les utilisateurs (les 10 premiers par defaut)
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async allUsers(parameters = []) {
+		validator.validateParams(parameters, 'allUsers');
+		return await this.doRequest("/users", "get", null, parameters);
+	}
+	
+	/**
+	 * Récupère l'utilisateur d'identifiant donné
+	 * @param {Integer|String} id un identifiant ou "me"
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async getUser(id="me", parameters = []) {
+		if (id != "me" && (isNaN(parseInt(id)) || parseInt(id) < 0)) throw 'id must be "me" or positive number'
+		validator.validateParams(parameters, 'getUser');
+		let url = '/users/'+id;
+		return await this.doRequest(url, "get", null, parameters);
+	}
 
-		let response = await this.axiosInstance.get(url, {
-			'params': parameters,
-			'headers': {'Authorization': 'Bearer '+accessToken}
-		});
-		return response.data;
+	/**
+	 * Met a jour un utilisateur sans remplacer la totalité de l'objet
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async patchUser(id, body = null) {
+		validator.validateId(id)
+		validator.validateBody(body, 'patchUser');
+		let url = '/users/'+id;
+		return await this.doRequest(url, "patch", body);
+	}
+
+	/**
+	 * Supprime l'utilisateur d'identifiant donné
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async deleteUser(id) {
+		validator.validateId(id);
+		let url = '/users/'+id;
+		return await this.doRequest(url, "delete");
+	}
+
+	/**
+	 * Récupère toutes les bases de données (les 10 premières par defaut)
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async allDatabases(parameters = []) {
+		validator.validateParams(parameters, 'allDatabases');
+		return await this.doRequest('/databases', "get", null, parameters);
+	}
+	
+	/**
+	 * Récupère la base de données d'identifiant donné
+	 * @param {Integer} id
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async getDatabase(id, parameters = []) {
+		validator.validateId(id)
+		validator.validateParams(parameters, 'getDatabase');
+		let url = '/databases/'+id;
+		return await this.doRequest(url, "get", null, parameters);
+	}
+
+	/**
+	 * Ajoute une base de données
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async addDatabase(body) {
+		validator.validateBody(body, "addDatabase");
+		return await this.doRequest("/databases", "post", body);
+	}
+
+	/**
+	 * Met a jour une base de données en remplacant la totalité de l'objet
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async putDatabase(id, body) {
+		validator.validateId(id)
+		validator.validateBody(body, "putDatabase");
+		let url = '/databases/'+id;
+		return await this.doRequest(url, "put", body);
+	}
+
+	/**
+	 * Met a jour une base de données sans remplacer la totalité de l'objet
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async patchDatabase(id, body) {
+		validator.validateId(id)
+		validator.validateBody(body, "patchDatabase");
+		let url = '/databases/'+id;
+		return await this.doRequest(url, "patch", body);
+	}
+
+	/**
+	 * Supprime la base de données d'identifiant donné
+	 * @param {Integer} id 
+	 * @returns {Promise}
+	 */
+	async deleteDatabase(id) {
+		validator.validateId(id);
+		let url = '/databases/'+id;
+		return await this.doRequest(url, "delete");
+	}
+
+	/**
+	 * Récupère tous les groupes (les 10 premiers par defaut)
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async allCommunities(parameters = []) {
+		validator.validateParams(parameters, 'allCommunities');
+		return await this.doRequest('/communities', "get", null, parameters);
+	}
+	
+	/**
+	 * Récupère le groupe d'identifiant donné
+	 * @param {Integer} id
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async getCommunity(id, parameters = []) {
+		validator.validateId(id)
+		validator.validateParams(parameters, 'getCommunity');
+		let url = '/communities/'+id;
+		return await this.doRequest(url, "get", null, parameters);
+	}
+
+	/**
+	 * Ajoute un groupe
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async addCommunity(body) {
+		validator.validateBody(body, "addCommunity");
+		return await this.doRequest("/communities", "post", body);
+	}
+
+	/**
+	 * Met a jour un groupe en remplacant la totalité de l'objet
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async putCommunity(id, body) {
+		validator.validateId(id)
+		validator.validateBody(body, "putCommunity");
+		let url = '/communities/'+id;
+		return await this.doRequest(url, "put", body);
+	}
+
+	/**
+	 * Met a jour un groupe sans remplacer la totalité de l'objet
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async patchCommunity(id, body) {
+		validator.validateId(id)
+		validator.validateBody(body, "patchCommunity");
+		let url = '/communities/'+id;
+		return await this.doRequest(url, "patch", body);
+	}
+
+	/**
+	 * Supprime le groupe d'identifiant donné
+	 * @param {Integer} id 
+	 * @returns {Promise}
+	 */
+	async deleteCommunity(id) {
+		validator.validateId(id);
+		let url = '/communities/'+id;
+		return await this.doRequest(url, "delete");
+	}
+
+	/**
+	 * Récupère toutes les permissions (les 10 premières par defaut)
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async allPermissions(parameters = []) {
+		validator.validateParams(parameters, 'allPermissions');
+		return await this.doRequest('/permissions', "get", null, parameters);
+	}
+	
+	/**
+	 * Récupère la permission d'identifiant donné
+	 * @param {Integer} id
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async getPermission(id, parameters = []) {
+		validator.validateId(id)
+		validator.validateParams(parameters, 'getPermission');
+		let url = '/permissions/'+id;
+		return await this.doRequest(url, "get", null, parameters);
+	}
+
+	/**
+	 * Ajoute une permission
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async addPermission(body) {
+		validator.validateBody(body, "addPermission");
+		return await this.doRequest("/permissions", "post", body);
+	}
+
+	/**
+	 * Met a jour une permission en remplaçant la totalité de l'objet
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async putPermission(id, body) {
+		validator.validateId(id)
+		validator.validateBody(body, "putPermission");
+		let url = '/permissions/'+id;
+		return await this.doRequest(url, "put", body);
+	}
+
+	/**
+	 * Met a jour une permission sans remplacer la totalité de l'objet
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async patchPermission(id, body) {
+		validator.validateId(id)
+		validator.validateBody(body, "patchPermission");
+		let url = '/permissions/'+id;
+		return await this.doRequest(url, "patch", body);
+	}
+
+	/**
+	 * Supprime la permission d'identifiant donné
+	 * @param {Integer} id 
+	 * @returns {Promise}
+	 */
+	async deletePermission(id) {
+		validator.validateId(id);
+		let url = '/permissions/'+id;
+		return await this.doRequest(url, "delete");
+	}
+
+	/**
+	 * Récupère toutes les alertes (les 10 premières par defaut)
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async allReports(parameters = []) {
+		validator.validateParams(parameters, 'allReports');
+		return await this.doRequest('/reports', "get", null, parameters);
+	}
+	
+	/**
+	 * Récupère l'alerte d'identifiant donné
+	 * @param {Integer} id
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async getReport(id, parameters = []) {
+		validator.validateId(id)
+		validator.validateParams(parameters, 'getReport');
+		let url = '/reports/'+id;
+		return await this.doRequest(url, "get", null, parameters);
+	}
+
+	/**
+	 * Ajoute une alerte
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async addReport(body) {
+		validator.validateBody(body, "addReport");
+		return await this.doRequest("/reports", "post", body);
+	}
+
+	/**
+	 * Met a jour une alerte en remplaçant la totalité de l'objet
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async putReport(id, body) {
+		validator.validateId(id)
+		validator.validateBody(body, "putReport");
+		let url = '/reports/'+id;
+		return await this.doRequest(url, "put", body);
+	}
+
+	/**
+	 * Met a jour une alerte sans remplacer la totalité de l'objet
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async patchReport(id, body) {
+		validator.validateId(id)
+		validator.validateBody(body, "patchReport");
+		let url = '/reports/'+id;
+		return await this.doRequest(url, "patch", body);
+	}
+
+	/**
+	 * Supprime l'alerte d'identifiant donné
+	 * @param {Integer} id 
+	 * @returns {Promise}
+	 */
+	async deleteReport(id) {
+		validator.validateId(id);
+		let url = '/reports/'+id;
+		return await this.doRequest(url, "delete");
+	}
+
+	/**
+	 * Récupère toutes les couches (les 10 premières par defaut)
+	 * @param {Integer} communityId l'identifiant de groupe auquel est rattachée la couche
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async allLayers(communityId, parameters = []) {
+		validator.validateId(communityId);
+		validator.validateParams(parameters, 'allLayers');
+		let url = '/communities/'+communityId+'/layers';
+		return await this.doRequest(url, "get", null, parameters);
+	}
+	
+	/**
+	 * Récupère la couche d'identifiant donné
+	 * @param {Integer} communityId l'identifiant de groupe auquel est rattachée la couche
+	 * @param {Integer} id
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async getLayer(communityId, id, parameters = []) {
+		validator.validateId(communityId);
+		validator.validateId(id);
+		validator.validateParams(parameters, 'getLayer');
+		let url = '/communities/'+communityId+'/layers/'+id;
+		return await this.doRequest(url, "get", null, parameters);
+	}
+
+	/**
+	 * Ajoute une couche
+	 * @param {Integer} communityId l'identifiant de groupe auquel est rattachée la couche
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async addLayer(communityId, body) {
+		validator.validateId(communityId);
+		validator.validateBody(body, "addLayer");
+		let url = '/communities/'+communityId+'/layers';
+		return await this.doRequest(url, "post", body);
+	}
+
+	/**
+	 * Met a jour une couche en remplaçant la totalité de l'objet
+	 * @param {Integer} communityId l'identifiant de groupe auquel est rattachée la couche
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async putLayer(communityId, id, body) {
+		validator.validateId(communityId);
+		validator.validateId(id)
+		validator.validateBody(body, "putLayer");
+		let url = '/communities/'+communityId+'/layers/'+id;
+		return await this.doRequest(url, "put", body);
+	}
+
+	/**
+	 * Met a jour une couche sans remplacer la totalité de l'objet
+	 * @param {Integer} communityId l'identifiant de groupe auquel est rattachée la couche
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async patchLayer(communityId, id, body) {
+		validator.validateId(communityId);
+		validator.validateId(id)
+		validator.validateBody(body, "patchLayer");
+		let url = '/communities/'+communityId+'/layers/'+id;
+		return await this.doRequest(url, "patch", body);
+	}
+
+	/**
+	 * Supprime la couche d'identifiant donné
+	 * @param {Integer} communityId l'identifiant de groupe auquel est rattachée la couche
+	 * @param {Integer} id 
+	 * @returns {Promise}
+	 */
+	async deleteLayer(communityId, id) {
+		validator.validateId(communityId);
+		validator.validateId(id);
+		let url = '/communities/'+communityId+'/layers/'+id;
+		return await this.doRequest(url, "delete");
+	}
+
+	/**
+	 * Récupère toutes les transactions (les 10 premières par defaut)
+	 * @param {Integer} databaseId l'identifiant de la base de données des transactions
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async allTransactions(databaseId, parameters = []) {
+		validator.validateId(databaseId);
+		validator.validateParams(parameters, "allTransactions");
+		let url = '/databases/'+databaseId+'/transactions';
+		return await this.doRequest(url, "get", null, parameters);
+	}
+
+	/**
+	 * Récupère la transaction d'identifiant donné
+	 * @param {Integer} databaseId l'identifiant de base de données de la transaction
+	 * @param {Integer} id
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async getTransaction(databaseId, id, parameters = []) {
+		validator.validateId(databaseId);
+		validator.validateId(id);
+		validator.validateParams(parameters, "getTransaction");
+		let url = '/databases/'+databaseId+'/tables/'+id;
+		return await this.doRequest(url, "get", null, parameters);
+	}
+
+	/**
+	 * Ajoute une transaction
+	 * * @param {Integer} databaseId l'identifiant de base de données de la transaction
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async addTransaction(databaseId, body) {
+		validator.validateId(databaseId);
+		validator.validateBody(body, "addTransaction");
+		let url = '/databases/'+databaseId+'/transactions';
+		return await this.doRequest(url, 'post', body);
+	}
+
+	/**
+	 * Récupère toutes les tables (les 10 premières par defaut)
+	 * @param {Integer} databaseId l'identifiant de la base de données des tables
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async allTables(databaseId, parameters = []) {
+		validator.validateId(databaseId);
+		validator.validateParams(parameters, "allTables");
+		let url = '/databases/'+databaseId+'/tables';
+		return await this.doRequest(url, "get", null, parameters);
+	}
+
+	/**
+	 * Récupère la table d'identifiant donné
+	 * @param {Integer} databaseId l'identifiant de base de données de la table
+	 * @param {Integer} id
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async getTable(databaseId, id, parameters = []) {
+		validator.validateId(databaseId);
+		validator.validateId(id);
+		validator.validateParams(parameters, "getTable");
+		let url = '/databases/'+databaseId+'/tables/'+id;
+		return await this.doRequest(url, "get", null, parameters);
+	}
+
+	/**
+	 * Ajoute une table
+	 * @param {Integer} databaseId l'identifiant de base de données de la table
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async addTable(databaseId, body) {
+		validator.validateId(databaseId);
+		validator.validateBody(body, "addTable");
+		let url = '/databases/'+databaseId+'/tables';
+		return await this.doRequest(url, 'post', body);
+	}
+
+	/**
+	 * Met a jour une table en remplaçant la totalité de l'objet
+	 * @param {Integer} databaseId l'identifiant de base de données de la table
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async putTable(databaseId, id, body) {
+		validator.validateId(databaseId);
+		validator.validateId(id);
+		validator.validateBody(body, "putTable");
+		let url = '/databases/'+databaseId+'/tables/'+id;
+		return await this.doRequest(url, "put", body);
+	}
+
+	/**
+	 * Met a jour une table sans remplacer la totalité de l'objet
+	 * @param {Integer} databaseId l'identifiant de base de données de la table
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async patchTable(databaseId, id, body) {
+		validator.validateId(databaseId);
+		validator.validateId(id);
+		validator.validateBody(body, "patchTable");
+		let url = '/databases/'+databaseId+'/tables/'+id;
+		return await this.doRequest(url, "patch", body);
+	}
+
+	/**
+	 * Supprime la table d'identifiant donné
+	 * @param {Integer} databaseId l'identifiant de base de données de la table
+	 * @param {Integer} id 
+	 * @returns {Promise}
+	 */
+	async deleteTable(databaseId, id) {
+		validator.validateId(databaseId);
+		validator.validateId(id);
+		let url = '/databases/'+databaseId+'/tables/'+id;
+		return await this.doRequest(url, "delete");
+	}
+
+	/**
+	 * Récupère toutes les colonnes (les 10 premières par defaut)
+	 * @param {Integer} databaseId l'identifiant de la base de données des colonnes
+	 * @param {Integer} tableId l'identifiant de la table des colonnes
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async allColumns(databaseId, tableId, parameters = []) {
+		validator.validateId(databaseId);
+		validator.validateId(tableId);
+		validator.validateParams(parameters, "allColumns");
+		let url = '/databases/'+databaseId+'/tables/'+tableId+'/columns';
+		return await this.doRequest(url, "get", null, parameters);
+	}
+
+	/**
+	 * Récupère la colonne d'identifiant donné
+	 * @param {Integer} databaseId l'identifiant de base de données de la colonne
+	 * @param {Integer} tableId l'identifiant de la table de la colonne
+	 * @param {Integer} id
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async getColumn(databaseId, tableId, id, parameters = []) {
+		validator.validateId(databaseId);
+		validator.validateId(tableId);
+		validator.validateId(id);
+		validator.validateParams(parameters, "getColumn");
+		let url = '/databases/'+databaseId+'/tables/'+tableId+'/columns/'+id;
+		return await this.doRequest(url, "get", null, parameters);
+	}
+
+	/**
+	 * Ajoute une colonne
+	 * @param {Integer} databaseId l'identifiant de base de données de la colonne
+	 * @param {Integer} tableId l'identifiant de la table de la colonne
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async addColumn(databaseId, tableId, body) {
+		validator.validateId(databaseId);
+		validator.validateId(tableId);
+		validator.validateBody(body, "addColumn");
+		let url = '/databases/'+databaseId+'/tables/'+tableId+'/columns';
+		return await this.doRequest(url, 'post', body);
+	}
+
+	/**
+	 * Met a jour une colonne en remplacant la totalité de l'objet
+	 * @param {Integer} databaseId l'identifiant de base de données de la colonne
+	 * @param {Integer} tableId l'identifiant de la table de la colonne
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async putColumn(databaseId, tableId, id, body) {
+		validator.validateId(databaseId);
+		validator.validateId(tableId);
+		validator.validateId(id);
+		validator.validateBody(body, "putColumn");
+		let url = '/databases/'+databaseId+'/tables/'+tableId+'/columns/'+id;
+		return await this.doRequest(url, "put", body);
+	}
+
+	/**
+	 * Met a jour une colonne sans remplacer la totalité de l'objet
+	 * @param {Integer} databaseId l'identifiant de base de données de la colonne
+	 * @param {Integer} tableId l'identifiant de la table de la colonne
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async patchColumn(databaseId, tableId, id, body) {
+		validator.validateId(databaseId);
+		validator.validateId(tableId);
+		validator.validateId(id);
+		validator.validateBody(body, "patchColumn");
+		let url = '/databases/'+databaseId+'/tables/'+tableId+'/columns/'+id;
+		return await this.doRequest(url, "patch", body);
+	}
+
+	/**
+	 * Supprime la colonne d'identifiant donné
+	 * @param {Integer} databaseId l'identifiant de base de données de la colonne
+	 * @param {Integer} tableId l'identifiant de la table de la colonne
+	 * @param {Integer} id 
+	 * @returns {Promise}
+	 */
+	async deleteColumn(databaseId, tableId, id) {
+		validator.validateId(databaseId);
+		validator.validateId(tableId);
+		validator.validateId(id);
+		let url = '/databases/'+databaseId+'/tables/'+tableId+'/columns/'+id;
+		return await this.doRequest(url, "delete");
+	}
+
+	/**
+	 * Récupère tous les objets (les 10 premiers par defaut)
+	 * @param {Integer} databaseId l'identifiant de la base de données des objets
+	 * @param {Integer} tableId l'identifiant de la table des objets
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async allFeatures(databaseId, tableId, parameters = []) {
+		validator.validateId(databaseId);
+		validator.validateId(tableId);
+		validator.validateParams(parameters, "allFeature");
+		let url = '/databases/'+databaseId+'/tables/'+tableId+'/features';
+		return await this.doRequest(url, "get", null, parameters);
+	}
+
+	/**
+	 * Récupère l objet d'identifiant donné
+	 * @param {Integer} databaseId l'identifiant de base de données de l objet
+	 * @param {Integer} tableId l'identifiant de la table de l objet
+	 * @param {Integer} id
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async getFeature(databaseId, tableId, id, parameters = []) {
+		validator.validateId(databaseId);
+		validator.validateId(tableId);
+		validator.validateId(id);
+		validator.validateParams(parameters, "getFeature");
+		let url = '/databases/'+databaseId+'/tables/'+tableId+'/features/'+id;
+		return await this.doRequest(url, "get", null, parameters);
+	}
+
+	/**
+	 * Ajoute un objet
+	 * @param {Integer} databaseId l'identifiant de base de données de l objet
+	 * @param {Integer} tableId l'identifiant de la table de l objet
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async addFeature(databaseId, tableId, body) {
+		validator.validateId(databaseId);
+		validator.validateId(tableId);
+		let url = '/databases/'+databaseId+'/tables/'+tableId+'/features';
+		return await this.doRequest(url, 'post', body);
+	}
+
+	/**
+	 * Met a jour un objet sans remplacer la totalité de l'objet
+	 * @param {Integer} databaseId l'identifiant de base de données de l objet
+	 * @param {Integer} tableId l'identifiant de la table de l objet
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async patchFeature(databaseId, tableId, id, body) {
+		validator.validateId(databaseId);
+		validator.validateId(tableId);
+		validator.validateId(id);
+		let url = '/databases/'+databaseId+'/tables/'+tableId+'/features/'+id;
+		return await this.doRequest(url, "patch", body);
+	}
+
+	/**
+	 * Supprime l'objet d'identifiant donné
+	 * @param {Integer} databaseId l'identifiant de base de données de l objet
+	 * @param {Integer} tableId l'identifiant de la table de l objet
+	 * @param {Integer} id 
+	 * @returns {Promise}
+	 */
+	async deleteFeature(databaseId, tableId, id) {
+		validator.validateId(databaseId);
+		validator.validateId(tableId);
+		validator.validateId(id);
+		let url = '/databases/'+databaseId+'/tables/'+tableId+'/features/'+id;
+		return await this.doRequest(url, "delete");
+	}
+
+	/**
+	 * Récupère tous les membres (les 10 premiers par defaut)
+	 * @param {Integer} communityId l'identifiant du groupe des membres
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async allMembers(communityId, parameters = []) {
+		validator.validateId(communityId);
+		validator.validateParams(parameters, 'allMembers');
+		let url = '/communities/'+communityId+'/members';
+		return await this.doRequest(url, "get", null, parameters);
+	}
+	
+	/**
+	 * Récupère le membre d'identifiant donné
+	 * @param {Integer} communityId l'identifiant du groupe du membre
+	 * @param {Integer} id
+	 * @param {Object} parameters 
+	 * @returns {Promise}
+	 */
+	async getMember(communityId, id, parameters = []) {
+		validator.validateId(communityId);
+		validator.validateId(id);
+		validator.validateParams(parameters, 'getMember');
+		let url = '/communities/'+communityId+'/members'+id;
+		return await this.doRequest(url, "get", null, parameters);
+	}
+
+	/**
+	 * Ajoute un membre
+	 * @param {Integer} communityId l'identifiant du groupe du membre
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async addMember(communityId, body) {
+		validator.validateId(communityId);
+		validator.validateBody(body, "addMember");
+		let url = '/communities/'+communityId+'/members';
+		return await this.doRequest(url, "post", body);
+	}
+
+	/**
+	 * Met a jour un membre en remplaçant la totalité de l'objet
+	 * @param {Integer} communityId l'identifiant du groupe du membre
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async putMember(communityId, id, body) {
+		validator.validateId(communityId);
+		validator.validateId(id)
+		validator.validateBody(body, "putMember");
+		let url = '/communities/'+communityId+'/members/'+id;
+		return await this.doRequest(url, "put", body);
+	}
+
+	/**
+	 * Met a jour un membre sans remplacer la totalité de l'objet
+	 * @param {Integer} communityId l'identifiant du groupe du membre
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async patchMember(communityId, id, body) {
+		validator.validateId(communityId);
+		validator.validateId(id)
+		validator.validateBody(body, "patchMember");
+		let url = '/communities/'+communityId+'/members/'+id;
+		return await this.doRequest(url, "patch", body);
+	}
+
+	/**
+	 * Supprime le membre d'identifiant donné
+	 * @param {Integer} communityId l'identifiant du groupe du membre
+	 * @param {Integer} id 
+	 * @returns {Promise}
+	 */
+	async deleteMember(communityId, id) {
+		validator.validateId(communityId);
+		validator.validateId(id);
+		let url = '/communities/'+communityId+'/members/'+id;
+		return await this.doRequest(url, "delete");
 	}
 }
 
