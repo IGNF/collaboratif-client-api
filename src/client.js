@@ -338,6 +338,77 @@ class ApiClient {
 	}
 
 	/**
+	 * Récupère tous les geoservices (les 10 premiers par defaut)
+	 * @param {Object} parameters
+	 * @returns {Promise}
+	 */
+	async allGeoservices(parameters = []) {
+		validator.validateParams(parameters, 'allGeoservices');
+		return await this.doRequest('/geoservices', "get", null, parameters);
+	}
+
+	/**
+	 * Récupère le geoservice d'identifiant donné
+	 * @param {Integer} id
+	 * @param {Object} parameters
+	 * @returns {Promise}
+	 */
+	async getGeoservice(id, parameters = []) {
+		validator.validateId(id);
+		validator.validateParams(parameters, "getGeoservice");
+		let url = '/geoservices/'+id;
+		return await this.doRequest(url, "get", null, parameters);
+	}
+
+	/**
+	 * Ajoute un geoservice
+	 * @param {Object} body
+	 * @returns {Promise}
+	 */
+	async addGeoservice(body) {
+		validator.validateBody(body, "addGeoservice");
+		return await this.toRequest("/geoservices", "post", body);
+	}
+
+	/**
+	 * Met a jour un geoservice en remplaçant la totalité de l'objet
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	 async putGeoservice(id, body) {
+		validator.validateId(id)
+		validator.validateBody(body, "putGeoservice");
+		let url = '/geoservices/'+id;
+		return await this.doRequest(url, "put", body);
+	}
+
+	/**
+	 * Met a jour un geoservice sans remplacer la totalité de l'objet
+	 * @param {Integer} id 
+	 * @param {Object} body 
+	 * @returns {Promise}
+	 */
+	async patchGeoservice(id, body) {
+		validator.validateId(id)
+		validator.validateBody(body, "patchGeoservice");
+		let url = '/geoservices/'+id;
+		return await this.doRequest(url, "patch", body);
+	}
+
+	/**
+	 * Supprime le geoservice d'identifiant donné
+	 * @param {Integer} id 
+	 * @returns {Promise}
+	 */
+	async deleteGeoservice(id) {
+		validator.validateId(id);
+		let url = '/geoservices/'+id;
+		return await this.doRequest(url, "delete");
+	}
+
+
+	/**
 	 * Récupère toutes les alertes (les 10 premières par defaut)
 	 * @param {Object} parameters 
 	 * @returns {Promise}

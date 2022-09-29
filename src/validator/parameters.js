@@ -88,6 +88,15 @@ export const parameters = {
         "sort",
         "page",
         "limit"
+    ],
+    "allGeoservices": [
+        "fields",
+		"page",
+		"limit",
+        "sort",
+        "description",
+        "title",
+        "owner"
     ]
 };
 
@@ -181,6 +190,26 @@ export const fields = {
         "attributes",
         "input_device",
         "device_version"
+    ],
+    "geoservice": [
+        "title",
+        "type",
+        "version",
+        "description",
+        "url",
+        "format",
+        "map_extent",
+        "min_zoom",
+        "max_zoom",
+        "input_mask",
+        "box_srid",
+        "owner",
+        "attribution_name",
+        "layers",
+        "attribution_url",
+        "attribution_logo_url",
+        "status",
+        "allowed_communities"
     ]
 };
 
@@ -213,5 +242,10 @@ export const mandatoryFields = {
     ],
     "report": [
         "geometry"
+    ],
+    "geoservice": [
+        "title",
+        "version",
+        "url"
     ]
 }
