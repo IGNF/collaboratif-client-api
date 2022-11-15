@@ -15,6 +15,10 @@ Vous devez autoriser les requêtes CORS vers le domaine .ign.fr et vers l'api d'
 <allow-navigation href="https://iam-ign-qa.cegedim.cloud/*" />
 ```
 
+## Génération documentation:
+
+./node_modules/.bin/jsdoc -d doc src/ README.md
+
 ## Exemple d'utilisation:
 
 ```
