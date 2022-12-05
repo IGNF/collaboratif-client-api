@@ -12,10 +12,10 @@ class AuthClient {
 	 * @param {String} clientSecret 
 	 */
     constructor (baseUrl, clientId, clientSecret) {
-        if (!baseUrl) throw 'An authentication url must be provided'
-        if (!clientId) throw 'A clientId must be provided'
+        if (!baseUrl) throw 'An authentication url must be provided';
+        if (!clientId) throw 'A clientId must be provided';
         this.clientId = clientId;
-        if (!clientSecret) throw 'A client secret must be provided'
+        if (!clientSecret) throw 'A client secret must be provided';
         this.clientSecret = clientSecret;
         this.expirationDate;
 		this.refreshExpirationDate;
@@ -25,6 +25,14 @@ class AuthClient {
 			baseURL: baseUrl
 		})
     }
+
+	/**
+	 * Recuperation de l'url de base de l'api d authentification
+	 * @return {String} l url de base de l api d authentification
+	 */
+	 getBaseUrl() {
+		return this.axiosInstance.defaults.baseURL;
+	}
 
 	/**
 	 * Renvoie true si le token n'est plus valide, false sinon
@@ -124,7 +132,8 @@ class AuthClient {
 				this.processTokenResponse(tokenResp.data);
 				return this.token;
 			} catch (error) {
-				throw 'Access Token Error: ' + error.message;
+				error.message = 'Access Token Error: ' + error.message ? error.message : error;
+				throw error;
 			}
 		} else if (this.isTokenExpired() && !this.isTokenRefreshExpired()) {
 			try {
@@ -132,7 +141,8 @@ class AuthClient {
 				this.processTokenResponse(tokenResp.data);
 				return this.token;
 			} catch (error) {
-				throw 'Error refreshing access token: ' + error.message;
+				error.message = 'Error refreshing access token: ' + error.message ? error.message : error;
+				throw error;
 			}
 		} else {
 			return this.token;
@@ -160,7 +170,8 @@ class AuthClient {
 			this.expirationDate = null;
 			this.refreshExpirationDate = null;
 		} catch (error) {
-			throw 'Error revoking access token:' + error.message;
+			error.message = 'Error revoking access token:' + error.message;
+			throw error;
 		}
 	}
 }

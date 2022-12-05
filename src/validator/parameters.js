@@ -1,6 +1,24 @@
 // définition des paramètres existants pour une route donnée de l'api. Permet d'éviter de faire une requête qui va finir en 400
 export const parameters = {
-	"all": [
+	"getPermissions": [
+		"fields",
+		"page",
+		"limit",
+        "sort"
+	],
+    "getLayers": [
+		"fields",
+		"page",
+		"limit",
+        "sort"
+	],
+    "getTables": [
+		"fields",
+		"page",
+		"limit",
+        "sort"
+	],
+    "getColumns": [
 		"fields",
 		"page",
 		"limit",
@@ -9,7 +27,7 @@ export const parameters = {
 	"get": [
 		"fields"
 	],
-	"allUsers": [
+	"getUsers": [
 		"fields",
 		"page",
 		"limit",
@@ -19,7 +37,7 @@ export const parameters = {
 		"firstname",
 		"email"
 	],
-	"allCommunities": [
+	"getCommunities": [
 		"fields",
 		"page",
 		"limit",
@@ -27,13 +45,13 @@ export const parameters = {
 		"description",
 		"name"
 	],
-    "allMembers": [
+    "getMembers": [
         "roles",
         "fields",
         "page",
         "limit"
     ],
-	"allDatabases": [
+	"getDatabases": [
 		"fields",
 		"page",
 		"limit",
@@ -42,12 +60,12 @@ export const parameters = {
 		"title",
 		"schema"
 	],
-    "allVersions": [
+    "getVersions": [
         "fields",
         "page",
         "limit"
     ],
-    "allUploads": [
+    "getUploads": [
         "fields",
         "sort",
         "page",
@@ -59,7 +77,7 @@ export const parameters = {
         "date",
         "user"
     ],
-    "allTransactions": [
+    "getTransactions": [
         "fields",
         "sort",
         "page",
@@ -70,7 +88,7 @@ export const parameters = {
         "status",
         "user"
     ],
-    "allReports": [
+    "getReports": [
         "author",
         "territory",
         "departements",
@@ -89,7 +107,7 @@ export const parameters = {
         "page",
         "limit"
     ],
-    "allGeoservices": [
+    "getGeoservices": [
         "fields",
 		"page",
 		"limit",

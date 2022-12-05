@@ -2,7 +2,7 @@ import {parameters, fields, mandatoryFields} from './parameters';
 
 /**
  * Validation des paramètres get passés dans la requête. 
- * Utilise les parametres du fichier parameters correspondant au nom de la fonction ou aux 3 premiers caractères: (all ou get)
+ * Utilise les parametres du fichier parameters correspondant au nom de la fonction ou aux 3 premiers caractères: (get)
  * Si pas de paramètres correspondants trouvés la validation passera systématiquement
  * @param {Object} params 
  * @param {String} fct 

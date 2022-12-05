@@ -34,11 +34,11 @@ let apiClient = new ApiClient(
 
 apiClient.setCredentials("moi", "mon_super_mot_de_passe");
 
-apiClient.getUser().then((user) => console.log(user)); //affichage de mes informations utilisateur
+apiClient.getUser().then((userResponse) => console.log(userResponse.data)); //affichage de mes informations utilisateur
 
 
 let unautreClient = new ApiClient();
-unautreClient.getCommunities({"limit": 2}).then((communities) => console.log(communities[0])) //récupération de 2 groupes et affichage du premier
+unautreClient.getCommunities({"limit": 2}).then((communitiesResponse) => console.log(communitiesResponse.data[0])) //récupération de 2 groupes et affichage du premier
 
 </script>
 ```
