@@ -85,7 +85,7 @@ class AuthClient {
 	 * @return {Promise}
 	 */
 	async getPrimaryToken(credentials) {
-		if (!credentials['username'] || !credentials['password']) throw 'Credentials must be provided';
+		if (!credentials['username'] || !credentials['password']) throw new Error('Credentials must be provided');
 		let tokenParams = {
 			'username': credentials['username'],
 			'password': credentials['password'],
@@ -104,7 +104,7 @@ class AuthClient {
 	 * @returns {Promise}
 	 */
 	async getRefreshToken() {
-		if (!this.refreshToken) throw 'No refresh token found';
+		if (!this.refreshToken) throw new Error('No refresh token found');
 		let tokenParams = {
 			'client_id': this.clientId,
 			'client_secret': this.clientSecret,
@@ -125,7 +125,7 @@ class AuthClient {
 	 * @returns {Promise} la reponse contient la valeur du token seule
 	 */
     async fetchToken(credentials) {
-		if (!credentials) throw 'Have to set credentials first';
+		if (!credentials) throw new Error('Have to set credentials first');
 		if (!this.token || (this.isTokenExpired() && this.isTokenRefreshExpired())) {
 			try {
 				let tokenResp = await this.getPrimaryToken(credentials);

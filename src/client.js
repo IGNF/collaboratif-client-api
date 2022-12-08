@@ -7,7 +7,6 @@ const CONN_ERROR = 'The request is unauthorized without being connected';
 
 /**
  * Entrée de l'api cliente.
- * Cette classe est un singleton. Permet de ne pas renseigner tous les paramètres de clientId... a chaque fois qu'on veut faire appel a l'api
  * La plupart des fonctions sont des raccourcis de la méthode doRequest
  */
 class ApiClient {
@@ -19,7 +18,6 @@ class ApiClient {
 	 * @param {String} clientSecret 
 	 */
 	constructor (apiBaseUrl, authBaseUrl = null, clientId = null, clientSecret = null) {
-		if(ApiClient._instance) return ApiClient._instance;
 		if (!apiBaseUrl) throw 'Mandatory parameter apiBaseUrl is missing.';
 		if (authBaseUrl && clientId && clientSecret) {
 			if (!this.setAuthParams(authBaseUrl, clientId, clientSecret)) throw 'Failed to configure Auth Client';		
@@ -88,8 +86,8 @@ class ApiClient {
 	 * @param {Boolean} encrypted true si le mot de passe est deja encrypte
 	 */
 	setCredentials(username, password, encrypted = false) {
-		if (!username) throw 'No user provided';
-		if (!password) throw 'No password provided';
+		if (!username) throw new Error('No user provided');
+		if (!password) throw new Error('No password provided');
 		this.username = username;
 		if (!encrypted) {
 			this.password = CryptoJS.AES.encrypt(password, this.secret).toString();
