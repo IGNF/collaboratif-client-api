@@ -90,7 +90,7 @@ class ApiClient {
 		if (!password) throw new Error('No password provided');
 		this.username = username;
 		if (!encrypted) {
-			this.password = CryptoJS.AES.encrypt(password, this.secret).toString();
+			this.password = CryptoJS.AES.encrypt(JSON.stringify(password), this.secret).toString();
 		} else {
 			this.password = password;
 		}
@@ -124,7 +124,7 @@ class ApiClient {
 		if (this.username && this.password) {
 			let credentials = {
 				username: this.username,
-				password: CryptoJS.AES.decrypt(this.password, this.secret).toString(CryptoJS.enc.Utf8)
+				password: JSON.parse(CryptoJS.AES.decrypt(this.password, this.secret).toString(CryptoJS.enc.Utf8))
 			};
 			let accessToken = await this.clientAuth.fetchToken(credentials);
 			config["headers"] = {'Authorization': 'Bearer '+accessToken};
