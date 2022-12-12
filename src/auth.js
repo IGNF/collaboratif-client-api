@@ -23,7 +23,8 @@ class AuthClient {
         this.refreshToken;
 		this.axiosInstance = axios.create({
 			baseURL: baseUrl
-		})
+		});
+		this.primaryInProgress = false; //si on a une demande de token en cours on temporise histoire de ne pas refaire 50 fois la meme requete
     }
 
 	/**
@@ -86,6 +87,7 @@ class AuthClient {
 	 */
 	async getPrimaryToken(credentials) {
 		if (!credentials['username'] || !credentials['password']) throw new Error('Credentials must be provided');
+		this.primaryInProgress = true;
 		let tokenParams = {
 			'username': credentials['username'],
 			'password': credentials['password'],
@@ -126,9 +128,13 @@ class AuthClient {
 	 */
     async fetchToken(credentials) {
 		if (!credentials) throw new Error('Have to set credentials first');
+		if( this.primaryInProgress ) {
+			await new Promise(r => setTimeout(r, 100));
+		}
 		if (!this.token || (this.isTokenExpired() && this.isTokenRefreshExpired())) {
 			try {
 				let tokenResp = await this.getPrimaryToken(credentials);
+				this.primaryInProgress = false;
 				this.processTokenResponse(tokenResp.data);
 				return this.token;
 			} catch (error) {
