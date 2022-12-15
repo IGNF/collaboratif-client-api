@@ -129,7 +129,7 @@ class AuthClient {
     async fetchToken(credentials) {
 		if (!credentials) throw new Error('Have to set credentials first');
 		if( this.primaryInProgress ) {
-			await new Promise(r => setTimeout(r, 100));
+			await new Promise(r => setTimeout(r, 1000));
 		}
 		if (!this.token || (this.isTokenExpired() && this.isTokenRefreshExpired())) {
 			try {
