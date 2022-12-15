@@ -26,8 +26,8 @@ Vous devez autoriser les requêtes CORS vers le domaine .ign.fr et vers l'api d'
 import {ApiClient} from 'collaboratif-client-api';
 
 let apiClient = new ApiClient(
-    'https://iam-url/auth/realms/demo/protocol/openid-connect', // l url de base pour l'authentification
     'https://espacecollaboratif.ign.fr/gcms/api', // l url de base de l api
+    'https://iam-url/auth/realms/demo/protocol/openid-connect', // l url de base pour l'authentification
     clientId,
     clientSecret
 );
