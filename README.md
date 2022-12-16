@@ -28,9 +28,6 @@ import {ApiClient} from 'collaboratif-client-api';
 //ex pour des routes accessibles sans authentification:
 let apiClientUnAuth = new ApiClient(
     'https://espacecollaboratif.ign.fr/gcms/api', // l url de base de l api
-    'https://iam-url/auth/realms/demo/protocol/openid-connect', // l url de base pour l'authentification
-    clientId,
-    clientSecret
 );
 apiClientUnAuth.getReports().then((reportResponse) => console.log(reportResponse.data)); //affichage des 10 premières alertes publiques
 
