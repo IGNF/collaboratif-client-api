@@ -46,7 +46,7 @@ apiClient.setCredentials("moi", "mon_super_mot_de_passe");
 
 apiClient.getUser().then((userResponse) => console.log(userResponse.data)); //affichage de mes informations utilisateur
 
-apiClient.getCommunities({"limit": 2}).then((communitiesResponse) => console.log(communitiesResponse.data[0])) //récupération de 2 groupes et affichage du premier
+apiClient.getLayers("mon_id_de_communaute", {"limit": 2}).then((layersResponse) => console.log(layersResponse.data[0])) //récupération de 2 couches et affichage de la premiere
 
 
 ```
