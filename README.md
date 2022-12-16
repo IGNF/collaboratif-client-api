@@ -25,6 +25,16 @@ Vous devez autoriser les requêtes CORS vers le domaine .ign.fr et vers l'api d'
 <script type="text/javascript">
 import {ApiClient} from 'collaboratif-client-api';
 
+//ex pour des routes accessibles sans authentification:
+let apiClientUnAuth = new ApiClient(
+    'https://espacecollaboratif.ign.fr/gcms/api', // l url de base de l api
+    'https://iam-url/auth/realms/demo/protocol/openid-connect', // l url de base pour l'authentification
+    clientId,
+    clientSecret
+);
+apiClientUnAuth.getReports().then((reportResponse) => console.log(reportResponse.data)); //affichage des 10 premières alertes publiques
+
+//ex avec authentification
 let apiClient = new ApiClient(
     'https://espacecollaboratif.ign.fr/gcms/api', // l url de base de l api
     'https://iam-url/auth/realms/demo/protocol/openid-connect', // l url de base pour l'authentification
@@ -36,9 +46,8 @@ apiClient.setCredentials("moi", "mon_super_mot_de_passe");
 
 apiClient.getUser().then((userResponse) => console.log(userResponse.data)); //affichage de mes informations utilisateur
 
-
-let unautreClient = new ApiClient();
 unautreClient.getCommunities({"limit": 2}).then((communitiesResponse) => console.log(communitiesResponse.data[0])) //récupération de 2 groupes et affichage du premier
+
 
 </script>
 ```
