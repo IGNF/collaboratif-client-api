@@ -22,7 +22,7 @@ Vous devez autoriser les requêtes CORS vers le domaine .ign.fr et vers l'api d'
 ## Exemple d'utilisation:
 
 ```
-<script type="text/javascript">
+
 import {ApiClient} from 'collaboratif-client-api';
 
 //ex pour des routes accessibles sans authentification:
@@ -46,10 +46,9 @@ apiClient.setCredentials("moi", "mon_super_mot_de_passe");
 
 apiClient.getUser().then((userResponse) => console.log(userResponse.data)); //affichage de mes informations utilisateur
 
-unautreClient.getCommunities({"limit": 2}).then((communitiesResponse) => console.log(communitiesResponse.data[0])) //récupération de 2 groupes et affichage du premier
+apiClient.getCommunities({"limit": 2}).then((communitiesResponse) => console.log(communitiesResponse.data[0])) //récupération de 2 groupes et affichage du premier
 
 
-</script>
 ```
 
 On peut également directement utiliser la route doRequest du client si le raccourci n'est pas défini. (ex: apiClient.doRequest("/communities", "get", null, {"limit": 2}))
