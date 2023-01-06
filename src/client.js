@@ -599,6 +599,20 @@ class ApiClient {
 	}
 
 	/**
+	 * Ajoute une reponse a une alerte
+	 * @param {Integer} reportId
+	 * @param {Object} body
+	 * @returns {Promise}
+	 */
+	async addReply(reportId, body) {
+		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		validator.validateId(reportId)
+		validator.validateBody(body, "addReply");
+		let url = '/reports/'+reportId+'/replies';
+		return await this.doRequest(url, "post", body);
+	}
+
+	/**
 	 * Récupère toutes les couches (les 10 premières par defaut)
 	 * @param {Integer} communityId l'identifiant de groupe auquel est rattachée la couche
 	 * @param {Object} parameters 

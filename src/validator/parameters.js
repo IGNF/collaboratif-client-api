@@ -209,6 +209,11 @@ export const fields = {
         "input_device",
         "device_version"
     ],
+    "reply": [
+        "title",
+        "content",
+        "status"
+    ],
     "geoservice": [
         "title",
         "type",
