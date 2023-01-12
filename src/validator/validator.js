@@ -47,8 +47,8 @@ function validateBody(body, fct) {
 	}
 	
 	if (fct.indexOf("patch") == -1) {
-		for (const mandatoryName in mandatoryFieldsList) {
-			if (Object.keys.indexOf(mandatoryName) == -1) throw 'Missing mandatory field ' + mandatoryName;
+		for (const i in mandatoryFieldsList) {
+			if (Object.keys(body).indexOf(mandatoryFieldsList[i]) == -1) throw 'Missing mandatory field ' + mandatoryFieldsList[i];
 		}
 	}	
 }
