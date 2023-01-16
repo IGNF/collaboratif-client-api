@@ -561,12 +561,22 @@ class ApiClient {
 		if (!this.isConnected()) throw new Error(CONN_ERROR);
 		validator.validateBody(body, "addReport");
 		let formData = new FormData();
-		for (var key in data) {
-			let value = data[key];
-			if (typeof(data[key]) === "object" && !(data[key] instanceof Blob)) {
-				value = JSON.stringify(data[key]);
+		let docCounter = 0;
+		for (var key in body) {
+			let value = body[key];
+			if (typeof(body[key]) === "object" && !(body[key] instanceof Blob)) {
+				value = JSON.stringify(body[key]);
 			}
-			formData.append(key, value);
+			if (body[key] instanceof Blob) {
+				docCounter += 1;
+				if (docCounter > 4) throw 'Maximum 4 documents';
+				let mimeType = body[key].type;
+				let extension = mimeType.split("/")[1];
+				let name = 'document'+docCounter+'.'+extension;
+				formData.append(key, value, name);
+			} else {
+				formData.append(key, value);
+			}			
 		}
 		
 		return await this.doRequest("/reports", "post", formData, null, 'multipart/form-data');
