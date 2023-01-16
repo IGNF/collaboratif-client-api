@@ -42,7 +42,7 @@ function validateBody(body, fct) {
 	let mandatoryFieldsList = mandatoryFields[objName] ? mandatoryFields[objName]: null;
 	if (fieldsList) {
 		for (const fieldName in body) {
-			if (fieldsList.indexOf(fieldName) == -1) throw 'Invalid field ' + fieldName + ': must be in [' + fieldsList.concat(', ')+ ']';
+			if (fieldsList.indexOf(fieldName) == -1 && !(body[fieldName] instanceof Blob)) throw 'Invalid field ' + fieldName + ': must be in [' + fieldsList.concat(', ')+ ']';
 		}
 	}
 	

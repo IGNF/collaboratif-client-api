@@ -137,13 +137,17 @@ class ApiClient {
 	 * @param {String} method get/post/patch/put/relete
 	 * @param {Object} body les paramètres post 
 	 * @param {Object} params les paramètres get
+	 * @param {Array<function>} transformRequest une fonction pouvant transformer les donnees ou le header ex: [function (data, headers) {// Do whatever you want to transform the data   return data; }]
 	 * @returns {Promise}
 	 */
-	async doRequest(url, method, body = null, params = null) {
+	async doRequest(url, method, body = null, params = null, contentType = 'application/json') {
 		let config = {
 			url: url,
 			method: method,
-			params: params
+			params: params,
+			headers: {
+				'Content-Type': contentType
+			}
 		};
 
 		await this.addAuthorization(config);
@@ -550,12 +554,22 @@ class ApiClient {
 	/**
 	 * Ajoute une alerte
 	 * @param {Object} body 
+	 * documents must be passed as blob
 	 * @returns {Promise}
 	 */
 	async addReport(body) {
 		if (!this.isConnected()) throw new Error(CONN_ERROR);
 		validator.validateBody(body, "addReport");
-		return await this.doRequest("/reports", "post", body);
+		let formData = new FormData();
+		for (var key in data) {
+			let value = data[key];
+			if (typeof(data[key]) === "object" && !(data[key] instanceof Blob)) {
+				value = JSON.stringify(data[key]);
+			}
+			formData.append(key, value);
+		}
+		
+		return await this.doRequest("/reports", "post", formData, null, 'multipart/form-data');
 	}
 
 	/**
