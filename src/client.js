@@ -144,15 +144,15 @@ class ApiClient {
 		let config = {
 			url: url,
 			method: method,
-			params: params,
-			headers: {
-				'Content-Type': contentType
-			}
+			params: params
 		};
 
 		await this.addAuthorization(config);
 
-		if (body) config.data = body;
+		if (body) {
+			config['headers']['Content-Type'] = contentType
+			config.data = body;
+		}
 		let response = await this.axiosInstance.request(config);
 		return response;
 	}
