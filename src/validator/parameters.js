@@ -115,6 +115,9 @@ export const parameters = {
         "description",
         "title",
         "owner"
+    ],
+    "getTableMaxNumrec": [
+        "bbox"
     ]
 };
 

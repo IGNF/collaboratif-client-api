@@ -801,6 +801,22 @@ class ApiClient {
 	}
 
 	/**
+	 * Récupère le numrec maximum parmi les objets de la table
+	 * @param {Integer} databaseId l'identifiant de base de données de la table
+	 * @param {Integer} id
+	 * @param {Object} parameters
+	 * @returns {Promise}
+	 */
+	async getTableMaxNumrec(databaseId, id, parameters = []) {
+		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		validator.validateId(databaseId);
+		validator.validateId(id);
+		validator.validateParams(parameters, "getTableMaxNumrec");
+		let url = '/databases/'+databaseId+'/tables/'+id+'/max-numrec';
+		return await this.doRequest(url, "get", null, parameters);
+	}
+
+	/**
 	 * Ajoute une table
 	 * @param {Integer} databaseId l'identifiant de base de données de la table
 	 * @param {Object} body 
