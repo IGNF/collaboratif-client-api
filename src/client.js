@@ -109,11 +109,19 @@ class ApiClient {
 
 	/**
 	 * Est ce qu un utilisateur est connecte
-	 * (si au moins une requete vers l api collaborative a ete faite)
-	 * @returns {Boolean} true si un utilisateur est connecte
+	 * @returns {Boolean|null} 
+	 * renvoie true si un utilisateur est connecte et au moins une requete a ete effectuee
+	 * renvoie null si aucune requête effectuée mais un utilisateur est renseigne (on ne sait pas encore s'il est valide!)
+	 * false si aucun utilisateur renseigne ou invalide
 	 */
 	isConnected() {
-		return (this.clientAuth && this.clientAuth.token) ? true : false;
+		if (this.clientAuth && this.clientAuth.token) {
+			return true;
+		} else if (this.username && this.clientAuth && !this.clientAuth.started) {
+			return null;
+		} else {
+			return false
+		}
 	}
 
 	/**
@@ -179,7 +187,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getUsers(parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateParams(parameters, 'getUsers');
 		return await this.doRequest("/users", "get", null, parameters);
 	}
@@ -204,7 +212,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async patchUser(id, body = null) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, 'patchUser');
 		let url = '/users/'+id;
@@ -218,7 +226,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async deleteUser(id) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id);
 		let url = '/users/'+id;
 		return await this.doRequest(url, "delete");
@@ -230,7 +238,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getDatabases(parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateParams(parameters, 'getDatabases');
 		return await this.doRequest('/databases', "get", null, parameters);
 	}
@@ -242,7 +250,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getDatabase(id, parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateParams(parameters, 'getDatabase');
 		let url = '/databases/'+id;
@@ -255,7 +263,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async addDatabase(body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateBody(body, "addDatabase");
 		return await this.doRequest("/databases", "post", body);
 	}
@@ -267,7 +275,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async putDatabase(id, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "putDatabase");
 		let url = '/databases/'+id;
@@ -281,7 +289,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async patchDatabase(id, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "patchDatabase");
 		let url = '/databases/'+id;
@@ -294,7 +302,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async deleteDatabase(id) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id);
 		let url = '/databases/'+id;
 		return await this.doRequest(url, "delete");
@@ -306,7 +314,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getCommunities(parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateParams(parameters, 'getCommunities');
 		return await this.doRequest('/communities', "get", null, parameters);
 	}
@@ -318,7 +326,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getCommunity(id, parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateParams(parameters, 'getCommunity');
 		let url = '/communities/'+id;
@@ -331,7 +339,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async addCommunity(body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateBody(body, "addCommunity");
 		return await this.doRequest("/communities", "post", body);
 	}
@@ -343,7 +351,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async putCommunity(id, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "putCommunity");
 		let url = '/communities/'+id;
@@ -357,7 +365,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async patchCommunity(id, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "patchCommunity");
 		let url = '/communities/'+id;
@@ -370,7 +378,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async deleteCommunity(id) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id);
 		let url = '/communities/'+id;
 		return await this.doRequest(url, "delete");
@@ -382,7 +390,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getPermissions(parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateParams(parameters, 'getPermissions');
 		return await this.doRequest('/permissions', "get", null, parameters);
 	}
@@ -394,7 +402,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getPermission(id, parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateParams(parameters, 'getPermission');
 		let url = '/permissions/'+id;
@@ -407,7 +415,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async addPermission(body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateBody(body, "addPermission");
 		return await this.doRequest("/permissions", "post", body);
 	}
@@ -419,7 +427,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async putPermission(id, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "putPermission");
 		let url = '/permissions/'+id;
@@ -433,7 +441,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async patchPermission(id, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "patchPermission");
 		let url = '/permissions/'+id;
@@ -446,7 +454,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async deletePermission(id) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id);
 		let url = '/permissions/'+id;
 		return await this.doRequest(url, "delete");
@@ -458,7 +466,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getGeoservices(parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateParams(parameters, 'getGeoservices');
 		return await this.doRequest('/geoservices', "get", null, parameters);
 	}
@@ -470,7 +478,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getGeoservice(id, parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id);
 		validator.validateParams(parameters, "getGeoservice");
 		let url = '/geoservices/'+id;
@@ -483,7 +491,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async addGeoservice(body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateBody(body, "addGeoservice");
 		return await this.toRequest("/geoservices", "post", body);
 	}
@@ -495,7 +503,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	 async putGeoservice(id, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "putGeoservice");
 		let url = '/geoservices/'+id;
@@ -509,7 +517,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async patchGeoservice(id, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "patchGeoservice");
 		let url = '/geoservices/'+id;
@@ -522,7 +530,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async deleteGeoservice(id) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id);
 		let url = '/geoservices/'+id;
 		return await this.doRequest(url, "delete");
@@ -558,7 +566,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async addReport(body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateBody(body, "addReport");
 		let formData = new FormData();
 		let docCounter = 0;
@@ -589,7 +597,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async putReport(id, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "putReport");
 		let url = '/reports/'+id;
@@ -603,7 +611,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async patchReport(id, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "patchReport");
 		let url = '/reports/'+id;
@@ -616,7 +624,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async deleteReport(id) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id);
 		let url = '/reports/'+id;
 		return await this.doRequest(url, "delete");
@@ -629,7 +637,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async addReply(reportId, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(reportId)
 		validator.validateBody(body, "addReply");
 		let url = '/reports/'+reportId+'/replies';
@@ -643,7 +651,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getLayers(communityId, parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(communityId);
 		validator.validateParams(parameters, 'getLayers');
 		let url = '/communities/'+communityId+'/layers';
@@ -658,7 +666,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getLayer(communityId, id, parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(communityId);
 		validator.validateId(id);
 		validator.validateParams(parameters, 'getLayer');
@@ -673,7 +681,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async addLayer(communityId, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(communityId);
 		validator.validateBody(body, "addLayer");
 		let url = '/communities/'+communityId+'/layers';
@@ -688,7 +696,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async putLayer(communityId, id, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(communityId);
 		validator.validateId(id)
 		validator.validateBody(body, "putLayer");
@@ -704,7 +712,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async patchLayer(communityId, id, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(communityId);
 		validator.validateId(id)
 		validator.validateBody(body, "patchLayer");
@@ -719,7 +727,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async deleteLayer(communityId, id) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(communityId);
 		validator.validateId(id);
 		let url = '/communities/'+communityId+'/layers/'+id;
@@ -733,7 +741,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getTransactions(databaseId, parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateParams(parameters, "getTransactions");
 		let url = '/databases/'+databaseId+'/transactions';
@@ -748,7 +756,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getTransaction(databaseId, id, parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(id);
 		validator.validateParams(parameters, "getTransaction");
@@ -763,7 +771,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async addTransaction(databaseId, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateBody(body, "addTransaction");
 		let url = '/databases/'+databaseId+'/transactions';
@@ -777,7 +785,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getTables(databaseId, parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateParams(parameters, "getTables");
 		let url = '/databases/'+databaseId+'/tables';
@@ -792,7 +800,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getTable(databaseId, id, parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(id);
 		validator.validateParams(parameters, "getTable");
@@ -808,7 +816,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getTableMaxNumrec(databaseId, id, parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(id);
 		validator.validateParams(parameters, "getTableMaxNumrec");
@@ -823,7 +831,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async addTable(databaseId, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateBody(body, "addTable");
 		let url = '/databases/'+databaseId+'/tables';
@@ -838,7 +846,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async putTable(databaseId, id, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(id);
 		validator.validateBody(body, "putTable");
@@ -854,7 +862,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async patchTable(databaseId, id, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(id);
 		validator.validateBody(body, "patchTable");
@@ -869,7 +877,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async deleteTable(databaseId, id) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(id);
 		let url = '/databases/'+databaseId+'/tables/'+id;
@@ -884,7 +892,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getColumns(databaseId, tableId, parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(tableId);
 		validator.validateParams(parameters, "getColumns");
@@ -901,7 +909,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getColumn(databaseId, tableId, id, parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(tableId);
 		validator.validateId(id);
@@ -918,7 +926,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async addColumn(databaseId, tableId, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(tableId);
 		validator.validateBody(body, "addColumn");
@@ -935,7 +943,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async putColumn(databaseId, tableId, id, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(tableId);
 		validator.validateId(id);
@@ -953,7 +961,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async patchColumn(databaseId, tableId, id, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(tableId);
 		validator.validateId(id);
@@ -970,7 +978,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async deleteColumn(databaseId, tableId, id) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(tableId);
 		validator.validateId(id);
@@ -986,7 +994,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getFeatures(databaseId, tableId, parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(tableId);
 		validator.validateParams(parameters, "getFeatures");
@@ -1003,7 +1011,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getFeature(databaseId, tableId, id, parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(tableId);
 		validator.validateId(id);
@@ -1020,7 +1028,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async addFeature(databaseId, tableId, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(tableId);
 		let url = '/databases/'+databaseId+'/tables/'+tableId+'/features';
@@ -1036,7 +1044,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async patchFeature(databaseId, tableId, id, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(tableId);
 		validator.validateId(id);
@@ -1052,7 +1060,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async deleteFeature(databaseId, tableId, id) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(tableId);
 		validator.validateId(id);
@@ -1067,7 +1075,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getMembers(communityId, parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(communityId);
 		validator.validateParams(parameters, 'getMembers');
 		let url = '/communities/'+communityId+'/members';
@@ -1082,7 +1090,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async getMember(communityId, id, parameters = []) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(communityId);
 		validator.validateId(id);
 		validator.validateParams(parameters, 'getMember');
@@ -1097,7 +1105,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async addMember(communityId, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(communityId);
 		validator.validateBody(body, "addMember");
 		let url = '/communities/'+communityId+'/members';
@@ -1112,7 +1120,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async putMember(communityId, id, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(communityId);
 		validator.validateId(id)
 		validator.validateBody(body, "putMember");
@@ -1128,7 +1136,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async patchMember(communityId, id, body) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(communityId);
 		validator.validateId(id)
 		validator.validateBody(body, "patchMember");
@@ -1143,7 +1151,7 @@ class ApiClient {
 	 * @returns {Promise}
 	 */
 	async deleteMember(communityId, id) {
-		if (!this.isConnected()) throw new Error(CONN_ERROR);
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(communityId);
 		validator.validateId(id);
 		let url = '/communities/'+communityId+'/members/'+id;

@@ -25,6 +25,7 @@ class AuthClient {
 			baseURL: baseUrl
 		});
 		this.primaryInProgress = false; //si on a une demande de token en cours on temporise histoire de ne pas refaire 50 fois la meme requete
+		this.started = false; // au moins une demande de token a été effectuée
     }
 
 	/**
@@ -127,6 +128,7 @@ class AuthClient {
 	 * @returns {Promise} la reponse contient la valeur du token seule
 	 */
     async fetchToken(credentials) {
+		this.started = true;
 		if (!credentials) throw new Error('Have to set credentials first');
 		if( this.primaryInProgress ) {
 			await new Promise(r => setTimeout(r, 1000));
@@ -161,6 +163,7 @@ class AuthClient {
 	 */
 	async disconnect() {
 		try{
+			this.started = false;
 			if (!this.isTokenExpired()){
 				let revokeParams = {
 					'client_id': this.clientId,
