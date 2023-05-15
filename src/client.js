@@ -142,7 +142,7 @@ class ApiClient {
 	/**
 	 * Fait une requête vers l'api collaborative
 	 * @param {String} url l'url relative qui nous intéresse. ex: /users
-	 * @param {String} method get/post/patch/put/relete
+	 * @param {String} method get/post/patch/put/delete
 	 * @param {Object} body les paramètres post 
 	 * @param {Object} params les paramètres get
 	 * @param {Array<function>} transformRequest une fonction pouvant transformer les donnees ou le header ex: [function (data, headers) {// Do whatever you want to transform the data   return data; }]
