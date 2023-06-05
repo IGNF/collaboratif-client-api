@@ -766,16 +766,17 @@ class ApiClient {
 
 	/**
 	 * Ajoute une transaction
-	 * * @param {Integer} databaseId l'identifiant de base de données de la transaction
+	 * @param {Integer} databaseId l'identifiant de base de données de la transaction
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async addTransaction(databaseId, body) {
+	async addTransaction(databaseId, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateBody(body, "addTransaction");
 		let url = '/databases/'+databaseId+'/transactions';
-		return await this.doRequest(url, 'post', body);
+		return await this.doRequest(url, 'post', body, null, contentType);
 	}
 
 	/**
