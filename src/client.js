@@ -1,4 +1,5 @@
 import {AuthClient} from './auth.js';
+import {objectToFormData} from './utils.js';
 import * as validator from './validator/validator.js';
 import * as CryptoJS from 'crypto-js';
 const axios = require('axios');
@@ -157,8 +158,12 @@ class ApiClient {
 
 		await this.addAuthorization(config);
 
+		if (body && ["application/x-www-form-urlencoded", "multipart/form-data"].includes(contentType)) {
+			body = objectToFormData(body);
+		}
+
 		if (body) {
-			config['headers']['Content-Type'] = contentType
+			config['headers']['Content-Type'] = contentType ? contentType : 'application/json';
 			config.data = body;
 		}
 		let response = await this.axiosInstance.request(config);
@@ -209,14 +214,15 @@ class ApiClient {
 	 * Met a jour un utilisateur sans remplacer la totalité de l'objet
 	 * @param {Integer} id 
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async patchUser(id, body = null) {
+	async patchUser(id, body = null, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, 'patchUser');
 		let url = '/users/'+id;
-		return await this.doRequest(url, "patch", body);
+		return await this.doRequest(url, "patch", body, null, contentType);
 	}
 
 	/**
@@ -260,40 +266,43 @@ class ApiClient {
 	/**
 	 * Ajoute une base de données
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async addDatabase(body) {
+	async addDatabase(body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateBody(body, "addDatabase");
-		return await this.doRequest("/databases", "post", body);
+		return await this.doRequest("/databases", "post", body, null, contentType);
 	}
 
 	/**
 	 * Met a jour une base de données en remplacant la totalité de l'objet
 	 * @param {Integer} id 
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async putDatabase(id, body) {
+	async putDatabase(id, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "putDatabase");
 		let url = '/databases/'+id;
-		return await this.doRequest(url, "put", body);
+		return await this.doRequest(url, "put", body, null, contentType);
 	}
 
 	/**
 	 * Met a jour une base de données sans remplacer la totalité de l'objet
 	 * @param {Integer} id 
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async patchDatabase(id, body) {
+	async patchDatabase(id, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "patchDatabase");
 		let url = '/databases/'+id;
-		return await this.doRequest(url, "patch", body);
+		return await this.doRequest(url, "patch", body, null, contentType);
 	}
 
 	/**
@@ -336,40 +345,43 @@ class ApiClient {
 	/**
 	 * Ajoute un groupe
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async addCommunity(body) {
+	async addCommunity(body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateBody(body, "addCommunity");
-		return await this.doRequest("/communities", "post", body);
+		return await this.doRequest("/communities", "post", body, null, contentType);
 	}
 
 	/**
 	 * Met a jour un groupe en remplacant la totalité de l'objet
 	 * @param {Integer} id 
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async putCommunity(id, body) {
+	async putCommunity(id, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "putCommunity");
 		let url = '/communities/'+id;
-		return await this.doRequest(url, "put", body);
+		return await this.doRequest(url, "put", body, null, contentType);
 	}
 
 	/**
 	 * Met a jour un groupe sans remplacer la totalité de l'objet
 	 * @param {Integer} id 
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async patchCommunity(id, body) {
+	async patchCommunity(id, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "patchCommunity");
 		let url = '/communities/'+id;
-		return await this.doRequest(url, "patch", body);
+		return await this.doRequest(url, "patch", body, null, contentType);
 	}
 
 	/**
@@ -412,40 +424,43 @@ class ApiClient {
 	/**
 	 * Ajoute une permission
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async addPermission(body) {
+	async addPermission(body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateBody(body, "addPermission");
-		return await this.doRequest("/permissions", "post", body);
+		return await this.doRequest("/permissions", "post", body, null, contentType);
 	}
 
 	/**
 	 * Met a jour une permission en remplaçant la totalité de l'objet
 	 * @param {Integer} id 
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async putPermission(id, body) {
+	async putPermission(id, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "putPermission");
 		let url = '/permissions/'+id;
-		return await this.doRequest(url, "put", body);
+		return await this.doRequest(url, "put", body, null, contentType);
 	}
 
 	/**
 	 * Met a jour une permission sans remplacer la totalité de l'objet
 	 * @param {Integer} id 
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async patchPermission(id, body) {
+	async patchPermission(id, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "patchPermission");
 		let url = '/permissions/'+id;
-		return await this.doRequest(url, "patch", body);
+		return await this.doRequest(url, "patch", body, null, contentType);
 	}
 
 	/**
@@ -488,40 +503,43 @@ class ApiClient {
 	/**
 	 * Ajoute un geoservice
 	 * @param {Object} body
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async addGeoservice(body) {
+	async addGeoservice(body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateBody(body, "addGeoservice");
-		return await this.toRequest("/geoservices", "post", body);
+		return await this.toRequest("/geoservices", "post", body, null, contentType);
 	}
 
 	/**
 	 * Met a jour un geoservice en remplaçant la totalité de l'objet
 	 * @param {Integer} id 
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	 async putGeoservice(id, body) {
+	 async putGeoservice(id, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "putGeoservice");
 		let url = '/geoservices/'+id;
-		return await this.doRequest(url, "put", body);
+		return await this.doRequest(url, "put", body, null, contentType);
 	}
 
 	/**
 	 * Met a jour un geoservice sans remplacer la totalité de l'objet
 	 * @param {Integer} id 
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async patchGeoservice(id, body) {
+	async patchGeoservice(id, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "patchGeoservice");
 		let url = '/geoservices/'+id;
-		return await this.doRequest(url, "patch", body);
+		return await this.doRequest(url, "patch", body, null, contentType);
 	}
 
 	/**
@@ -568,26 +586,15 @@ class ApiClient {
 	async addReport(body) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateBody(body, "addReport");
-		let formData = new FormData();
 		let docCounter = 0;
 		for (var key in body) {
-			let value = body[key];
-			if (typeof(body[key]) === "object" && !(body[key] instanceof Blob)) {
-				value = JSON.stringify(body[key]);
-			}
 			if (body[key] instanceof Blob) {
 				docCounter += 1;
 				if (docCounter > 4) throw 'Maximum 4 documents';
-				let mimeType = body[key].type;
-				let extension = mimeType.split("/")[1];
-				let name = 'document'+docCounter+'.'+extension;
-				formData.append(key, value, name);
-			} else {
-				formData.append(key, value);
-			}			
+			}
 		}
 		
-		return await this.doRequest("/reports", "post", formData, null, 'multipart/form-data');
+		return await this.doRequest("/reports", "post", body, null, 'multipart/form-data');
 	}
 
 	/**
@@ -600,8 +607,15 @@ class ApiClient {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "putReport");
+		let docCounter = 0;
+		for (var key in body) {
+			if (body[key] instanceof Blob) {
+				docCounter += 1;
+				if (docCounter > 4) throw 'Maximum 4 documents';
+			}
+		}
 		let url = '/reports/'+id;
-		return await this.doRequest(url, "put", body);
+		return await this.doRequest(url, "put", body, null, 'multipart/form-data');
 	}
 
 	/**
@@ -634,14 +648,15 @@ class ApiClient {
 	 * Ajoute une reponse a une alerte
 	 * @param {Integer} reportId
 	 * @param {Object} body
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async addReply(reportId, body) {
+	async addReply(reportId, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(reportId)
 		validator.validateBody(body, "addReply");
 		let url = '/reports/'+reportId+'/replies';
-		return await this.doRequest(url, "post", body);
+		return await this.doRequest(url, "post", body, null, contentType);
 	}
 
 	/**
@@ -678,14 +693,15 @@ class ApiClient {
 	 * Ajoute une couche
 	 * @param {Integer} communityId l'identifiant de groupe auquel est rattachée la couche
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async addLayer(communityId, body) {
+	async addLayer(communityId, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(communityId);
 		validator.validateBody(body, "addLayer");
 		let url = '/communities/'+communityId+'/layers';
-		return await this.doRequest(url, "post", body);
+		return await this.doRequest(url, "post", body, null, contentType);
 	}
 
 	/**
@@ -693,15 +709,16 @@ class ApiClient {
 	 * @param {Integer} communityId l'identifiant de groupe auquel est rattachée la couche
 	 * @param {Integer} id 
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async putLayer(communityId, id, body) {
+	async putLayer(communityId, id, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(communityId);
 		validator.validateId(id)
 		validator.validateBody(body, "putLayer");
 		let url = '/communities/'+communityId+'/layers/'+id;
-		return await this.doRequest(url, "put", body);
+		return await this.doRequest(url, "put", body, null, contentType);
 	}
 
 	/**
@@ -709,15 +726,16 @@ class ApiClient {
 	 * @param {Integer} communityId l'identifiant de groupe auquel est rattachée la couche
 	 * @param {Integer} id 
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async patchLayer(communityId, id, body) {
+	async patchLayer(communityId, id, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(communityId);
 		validator.validateId(id)
 		validator.validateBody(body, "patchLayer");
 		let url = '/communities/'+communityId+'/layers/'+id;
-		return await this.doRequest(url, "patch", body);
+		return await this.doRequest(url, "patch", body, null, contentType);
 	}
 
 	/**
@@ -829,14 +847,15 @@ class ApiClient {
 	 * Ajoute une table
 	 * @param {Integer} databaseId l'identifiant de base de données de la table
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async addTable(databaseId, body) {
+	async addTable(databaseId, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateBody(body, "addTable");
 		let url = '/databases/'+databaseId+'/tables';
-		return await this.doRequest(url, 'post', body);
+		return await this.doRequest(url, 'post', body, null, contentType);
 	}
 
 	/**
@@ -844,15 +863,16 @@ class ApiClient {
 	 * @param {Integer} databaseId l'identifiant de base de données de la table
 	 * @param {Integer} id 
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async putTable(databaseId, id, body) {
+	async putTable(databaseId, id, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(id);
 		validator.validateBody(body, "putTable");
 		let url = '/databases/'+databaseId+'/tables/'+id;
-		return await this.doRequest(url, "put", body);
+		return await this.doRequest(url, "put", body, null, contentType);
 	}
 
 	/**
@@ -860,15 +880,16 @@ class ApiClient {
 	 * @param {Integer} databaseId l'identifiant de base de données de la table
 	 * @param {Integer} id 
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async patchTable(databaseId, id, body) {
+	async patchTable(databaseId, id, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(id);
 		validator.validateBody(body, "patchTable");
 		let url = '/databases/'+databaseId+'/tables/'+id;
-		return await this.doRequest(url, "patch", body);
+		return await this.doRequest(url, "patch", body, null, contentType);
 	}
 
 	/**
@@ -924,15 +945,16 @@ class ApiClient {
 	 * @param {Integer} databaseId l'identifiant de base de données de la colonne
 	 * @param {Integer} tableId l'identifiant de la table de la colonne
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async addColumn(databaseId, tableId, body) {
+	async addColumn(databaseId, tableId, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(tableId);
 		validator.validateBody(body, "addColumn");
 		let url = '/databases/'+databaseId+'/tables/'+tableId+'/columns';
-		return await this.doRequest(url, 'post', body);
+		return await this.doRequest(url, 'post', body, null, contentType);
 	}
 
 	/**
@@ -941,16 +963,17 @@ class ApiClient {
 	 * @param {Integer} tableId l'identifiant de la table de la colonne
 	 * @param {Integer} id 
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async putColumn(databaseId, tableId, id, body) {
+	async putColumn(databaseId, tableId, id, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(tableId);
 		validator.validateId(id);
 		validator.validateBody(body, "putColumn");
 		let url = '/databases/'+databaseId+'/tables/'+tableId+'/columns/'+id;
-		return await this.doRequest(url, "put", body);
+		return await this.doRequest(url, "put", body, null, contentType);
 	}
 
 	/**
@@ -959,16 +982,17 @@ class ApiClient {
 	 * @param {Integer} tableId l'identifiant de la table de la colonne
 	 * @param {Integer} id 
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async patchColumn(databaseId, tableId, id, body) {
+	async patchColumn(databaseId, tableId, id, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(tableId);
 		validator.validateId(id);
 		validator.validateBody(body, "patchColumn");
 		let url = '/databases/'+databaseId+'/tables/'+tableId+'/columns/'+id;
-		return await this.doRequest(url, "patch", body);
+		return await this.doRequest(url, "patch", body, null, contentType);
 	}
 
 	/**
@@ -1026,14 +1050,15 @@ class ApiClient {
 	 * @param {Integer} databaseId l'identifiant de base de données de l objet
 	 * @param {Integer} tableId l'identifiant de la table de l objet
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async addFeature(databaseId, tableId, body) {
+	async addFeature(databaseId, tableId, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(tableId);
 		let url = '/databases/'+databaseId+'/tables/'+tableId+'/features';
-		return await this.doRequest(url, 'post', body);
+		return await this.doRequest(url, 'post', body, null, contentType);
 	}
 
 	/**
@@ -1042,15 +1067,16 @@ class ApiClient {
 	 * @param {Integer} tableId l'identifiant de la table de l objet
 	 * @param {Integer} id 
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async patchFeature(databaseId, tableId, id, body) {
+	async patchFeature(databaseId, tableId, id, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(databaseId);
 		validator.validateId(tableId);
 		validator.validateId(id);
 		let url = '/databases/'+databaseId+'/tables/'+tableId+'/features/'+id;
-		return await this.doRequest(url, "patch", body);
+		return await this.doRequest(url, "patch", body, null, contentType);
 	}
 
 	/**
@@ -1103,14 +1129,15 @@ class ApiClient {
 	 * Ajoute un membre
 	 * @param {Integer} communityId l'identifiant du groupe du membre
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async addMember(communityId, body) {
+	async addMember(communityId, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(communityId);
 		validator.validateBody(body, "addMember");
 		let url = '/communities/'+communityId+'/members';
-		return await this.doRequest(url, "post", body);
+		return await this.doRequest(url, "post", body, null, contentType);
 	}
 
 	/**
@@ -1118,15 +1145,16 @@ class ApiClient {
 	 * @param {Integer} communityId l'identifiant du groupe du membre
 	 * @param {Integer} id 
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async putMember(communityId, id, body) {
+	async putMember(communityId, id, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(communityId);
 		validator.validateId(id)
 		validator.validateBody(body, "putMember");
 		let url = '/communities/'+communityId+'/members/'+id;
-		return await this.doRequest(url, "put", body);
+		return await this.doRequest(url, "put", body, null, contentType);
 	}
 
 	/**
@@ -1134,15 +1162,16 @@ class ApiClient {
 	 * @param {Integer} communityId l'identifiant du groupe du membre
 	 * @param {Integer} id 
 	 * @param {Object} body 
+	 * @param {String} contentType si besoin autre que json
 	 * @returns {Promise}
 	 */
-	async patchMember(communityId, id, body) {
+	async patchMember(communityId, id, body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(communityId);
 		validator.validateId(id)
 		validator.validateBody(body, "patchMember");
 		let url = '/communities/'+communityId+'/members/'+id;
-		return await this.doRequest(url, "patch", body);
+		return await this.doRequest(url, "patch", body, null, contentType);
 	}
 
 	/**
