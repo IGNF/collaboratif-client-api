@@ -20,17 +20,20 @@ export function objectToFormData(body, formData, parentKey) {
             let extension = mimeType.split("/")[1];
             let name = 'document'+docCounter+'.'+extension;
             formData.append(propName, value, name);
+        } else if (!value) {
+            continue;
         } else if (value instanceof Date || typeof value == "boolean") {
             formData.append(propName, JSON.stringify(value));
         } else if ( 
             typeof(value) === "object"
-            && value
             && (
                 (typeof value.keys === "function" && value.keys()) 
                 || (Object.keys(value) && Object.keys(value).length)
             )
         ) {
             objectToFormData(value, formData, propName);
+        } else if ( typeof(value) === "object" ) {
+            formData.append(propName, JSON.stringify(value));
         } else {
             formData.append(propName, value);
         }			
