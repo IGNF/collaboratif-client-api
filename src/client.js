@@ -586,13 +586,7 @@ class ApiClient {
 	async addReport(body) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateBody(body, "addReport");
-		let docCounter = 0;
-		for (var key in body) {
-			if (body[key] instanceof Blob) {
-				docCounter += 1;
-				if (docCounter > 4) throw 'Maximum 4 documents';
-			}
-		}
+		validator.validateNbDocs(body);
 		
 		return await this.doRequest("/reports", "post", body, null, 'multipart/form-data');
 	}
@@ -607,13 +601,7 @@ class ApiClient {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateId(id)
 		validator.validateBody(body, "putReport");
-		let docCounter = 0;
-		for (var key in body) {
-			if (body[key] instanceof Blob) {
-				docCounter += 1;
-				if (docCounter > 4) throw 'Maximum 4 documents';
-			}
-		}
+		validator.validateNbDocs(body);
 		let url = '/reports/'+id;
 		return await this.doRequest(url, "put", body, null, 'multipart/form-data');
 	}
@@ -642,6 +630,18 @@ class ApiClient {
 		validator.validateId(id);
 		let url = '/reports/'+id;
 		return await this.doRequest(url, "delete");
+	}
+
+	/**
+	 * Ajoute un ou plusieurs documents a une alerte (max 4)
+	 * @param {Integer} reportId l identifiant de l alerte
+	 * @returns {Promise}
+	 */
+	async addAttachments(reportId, body) {
+		if (this.isConnected() === false) throw new Error(CONN_ERROR);
+		validator.validateId(reportId);
+		validator.validateNbDocs(body);
+		return await this.doRequest("/reports/"+reportId+"/attachments", "post", body, null, 'multipart/form-data');
 	}
 
 	/**

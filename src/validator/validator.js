@@ -53,4 +53,19 @@ function validateBody(body, fct) {
 	}	
 }
 
-export {validateParams, validateId, validateBody};
+/**
+ * Validation du nombre de documents fournis (maximum 4)
+ * @param {Object} body 
+ * @throw Exception si plus de 4 documents
+ */
+function validateNbDocs(body) {
+	let docCounter = 0;
+	for (var key in body) {
+		if (body[key] instanceof Blob) {
+			docCounter += 1;
+			if (docCounter > 4) throw 'Maximum 4 documents';
+		}
+	}
+}
+
+export {validateParams, validateId, validateBody, validateNbDocs};
