@@ -20,7 +20,7 @@ export function objectToFormData(body, formData, parentKey) {
             let extension = mimeType.split("/")[1];
             let name = 'document'+docCounter+'.'+extension;
             formData.append(propName, value, name);
-        } else if (!value) {
+        } else if (!value && typeof value != "boolean") {
             continue;
         } else if (value instanceof Date || typeof value == "boolean") {
             formData.append(propName, JSON.stringify(value));
