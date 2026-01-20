@@ -2,7 +2,7 @@ import {AuthClient} from './auth.js';
 import {objectToFormData} from './utils.js';
 import * as validator from './validator/validator.js';
 import * as CryptoJS from 'crypto-js';
-const axios = require('axios');
+import axios from 'axios';
 
 const CONN_ERROR = 'The request is unauthorized without being connected';
 
