@@ -11,12 +11,11 @@ class AuthClient {
    * @constructor
    * @param {String} baseUrl ex: https://iam-url/auth/realms/demo/protocol/openid-connect
    * @param {String} clientId 
-   * @param {String} clientSecret 
+   * @param {String} clientSecret (optionnel, non présent si PKCE)
    */
-  constructor(baseUrl, clientId, clientSecret) {
+  constructor(baseUrl, clientId, clientSecret = null) {
     if (!baseUrl) throw new ApiError('An authentication url must be provided', ErrorCode.BASE_URL_MISSING);
     if (!clientId) throw new ApiError('A clientId must be provided', ErrorCode.CLIENT_ID_MISSING);
-    if (!clientSecret) throw new ApiError('A client secret must be provided', ErrorCode.CLIENT_SECRET_MISSING);
 
     this.clientId = clientId;
     this.clientSecret = clientSecret;
@@ -24,7 +23,9 @@ class AuthClient {
     this.refreshExpirationDate = null;
     this.token = null;
     this.refreshToken = null;
-    this.externalToken = null; // Pour authentification externe (SSO)
+
+    this.usesPKCE = clientSecret === null; // true si client public sans secret (PKCE)
+    this.usesExternalToken = false; // Pour authentification externe (SSO)
 
     this.axiosInstance = axios.create({
       baseURL: baseUrl
@@ -46,7 +47,7 @@ class AuthClient {
 
     this.token = accessToken;
     this.refreshToken = refreshToken;
-    this.externalToken = true;
+    this.usesExternalToken = true;
     this.started = true;
 
     // Calcule les dates d'expiration
@@ -104,7 +105,7 @@ class AuthClient {
   }
 
   /**
-   * Calcule et stoke toutes les informations à récupérer à la suite d'une demande de token: 
+   * Calcule et stocke toutes les informations à récupérer à la suite d'une demande de token: 
    * le token, le refresh token et les dates d'expiration
    * @param {Object} response 
    */
@@ -140,16 +141,23 @@ class AuthClient {
    * @returns {Promise}
    */
   async getRefreshToken() {
-    if (!this.refreshToken) throw new Error('No refresh token found');
-    let tokenParams = {
-      'client_id': this.clientId,
-      'client_secret': this.clientSecret,
-      'scope': 'openid',
-      'refresh_token': this.refreshToken,
-      'grant_type': 'refresh_token'
+    if (!this.refreshToken) throw new ApiError('No refresh token found', ErrorCode.REFRESH_TOKEN_MISSING);
+
+    try {
+      let tokenParams = {
+        'client_id': this.clientId,
+        'scope': 'openid',
+        'refresh_token': this.refreshToken,
+        'grant_type': 'refresh_token'
+      }
+      if (!this.usesPKCE) { // si non PKCE, on ajoute le secret au paramètre de la requête
+        tokenParams['client_secret'] = this.clientSecret;
+      }
+      const params = new URLSearchParams(tokenParams);
+      return await this.axiosInstance.post('/token', params);
+    } catch (error) {
+      throw new ApiError('Error refreshing access token: ' + error.message ? error.message : error, ErrorCode.ERROR_REFRESHING_ACCESS_TOKEN);
     }
-    const params = new URLSearchParams(tokenParams);
-    return await this.axiosInstance.post('/token', params);
   }
 
   /**
@@ -162,31 +170,52 @@ class AuthClient {
    */
   async fetchToken(credentials) {
     this.started = true;
-    if (!credentials) throw new Error('Have to set credentials first');
-    if (this.primaryInProgress) {
-      await new Promise(r => setTimeout(r, 1000));
-    }
-    if (!this.token || (this.isTokenExpired() && this.isTokenRefreshExpired())) {
-      try {
-        let tokenResp = await this.getPrimaryToken(credentials);
-        this.primaryInProgress = false;
-        this.processTokenResponse(tokenResp.data);
+
+    // si utilise token externe
+    if (this.usesExternalToken) {
+      // Si token externe valide, le retourner directement
+      if (this.token && !this.isTokenExpired()) {
         return this.token;
-      } catch (error) {
-        error.message = 'Access Token Error: ' + error.message ? error.message : error;
-        throw error;
       }
-    } else if (this.isTokenExpired() && !this.isTokenRefreshExpired()) {
-      try {
+      else if (this.isTokenExpired() && !this.isTokenRefreshExpired()) {
+        // si le token est expiré mais que le refresh token est encore valide, on rafraîchit le token
         let tokenResp = await this.getRefreshToken();
+        if (tokenResp.status !== 200) throw new ApiError('Error refreshing access token', ErrorCode.ERROR_REFRESHING_ACCESS_TOKEN);
         this.processTokenResponse(tokenResp.data);
         return this.token;
-      } catch (error) {
-        error.message = 'Error refreshing access token: ' + error.message ? error.message : error;
-        throw error;
       }
-    } else {
-      return this.token;
+      else {
+        throw new ApiError('Token expired and refresh token is not valid', ErrorCode.REFRESH_TOKEN_EXPIRED);
+      }
+    }
+    // si utilise credentials, comportement classique
+    else {
+      if (!credentials) throw new Error('Have to set credentials first');
+      if (this.primaryInProgress) {
+        await new Promise(r => setTimeout(r, 1000));
+      }
+      if (!this.token || (this.isTokenExpired() && this.isTokenRefreshExpired())) {
+        try {
+          let tokenResp = await this.getPrimaryToken(credentials);
+          this.primaryInProgress = false;
+          this.processTokenResponse(tokenResp.data);
+          return this.token;
+        } catch (error) {
+          error.message = 'Access Token Error: ' + error.message ? error.message : error;
+          throw error;
+        }
+      } else if (this.isTokenExpired() && !this.isTokenRefreshExpired()) {
+        try {
+          let tokenResp = await this.getRefreshToken();
+          this.processTokenResponse(tokenResp.data);
+          return this.token;
+        } catch (error) {
+          error.message = 'Error refreshing access token: ' + error.message ? error.message : error;
+          throw error;
+        }
+      } else {
+        return this.token;
+      }
     }
   }
 
