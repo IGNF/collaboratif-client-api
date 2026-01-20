@@ -35,6 +35,33 @@ class AuthClient {
   }
 
   /**
+     * Définit un token obtenu via SSO externe
+     * @param {String} accessToken - Le token d'accès
+     * @param {String} refreshToken - Le refresh token (optionnel)
+     * @param {Number} expiresIn - Durée de validité en secondes (optionnel, défaut: 43200 -> 12 heures)
+     * @param {Number} refreshExpiresIn - Durée de validité du refresh token (optionnel)
+     */
+  setExternalToken(accessToken, refreshToken = null, expiresIn = 43200, refreshExpiresIn = null) {
+    if (!accessToken) throw new ApiError('Access token is required', ErrorCode.ACCESS_TOKEN_MISSING);
+
+    this.token = accessToken;
+    this.refreshToken = refreshToken;
+    this.externalToken = true;
+    this.started = true;
+
+    // Calcule les dates d'expiration
+    const tokenExpiry = new Date();
+    tokenExpiry.setSeconds(tokenExpiry.getSeconds() + expiresIn);
+    this.expirationDate = tokenExpiry;
+
+    if (refreshToken && refreshExpiresIn) {
+      const refreshExpiry = new Date();
+      refreshExpiry.setSeconds(refreshExpiry.getSeconds() + refreshExpiresIn);
+      this.refreshExpirationDate = refreshExpiry;
+    }
+  }
+
+  /**
    * Recuperation de l'url de base de l'api d authentification
    * @return {String} l url de base de l api d authentification
    */
