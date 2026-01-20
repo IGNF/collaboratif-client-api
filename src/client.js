@@ -509,7 +509,7 @@ class ApiClient {
 	async addGeoservice(body, contentType = null) {
 		if (this.isConnected() === false) throw new Error(CONN_ERROR);
 		validator.validateBody(body, "addGeoservice");
-		return await this.toRequest("/geoservices", "post", body, null, contentType);
+		return await this.doRequest("/geoservices", "post", body, null, contentType);
 	}
 
 	/**
@@ -1121,7 +1121,7 @@ class ApiClient {
 		validator.validateId(communityId);
 		validator.validateId(id);
 		validator.validateParams(parameters, 'getMember');
-		let url = '/communities/'+communityId+'/members'+id;
+		let url = '/communities/'+communityId+'/members/'+id;
 		return await this.doRequest(url, "get", null, parameters);
 	}
 
