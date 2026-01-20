@@ -3,6 +3,7 @@ import { objectToFormData } from './utils.js';
 import * as validator from './validator/validator.js';
 import * as CryptoJS from 'crypto-js';
 import axios from 'axios';
+import { ApiError, ErrorCode } from './error.js';
 
 const CONN_ERROR = 'The request is unauthorized without being connected';
 
@@ -19,9 +20,9 @@ class ApiClient {
    * @param {String} clientSecret 
    */
   constructor(apiBaseUrl, authBaseUrl = null, clientId = null, clientSecret = null) {
-    if (!apiBaseUrl) throw 'Mandatory parameter apiBaseUrl is missing.';
-    if (authBaseUrl && clientId && clientSecret) {
-      if (!this.setAuthParams(authBaseUrl, clientId, clientSecret)) throw 'Failed to configure Auth Client';
+    if (!apiBaseUrl) throw new ApiError('Mandatory parameter apiBaseUrl is missing.', ErrorCode.BASE_URL_MISSING);
+    if (authBaseUrl && clientId) {
+      if (!this.setAuthParams(authBaseUrl, clientId, clientSecret)) throw new ApiError('Failed to configure Auth Client', ErrorCode.CLIENT_CONFIGURATION_ERROR);
     }
     this.secret = null
     try {
@@ -61,11 +62,11 @@ class ApiClient {
    * Changement des parametres d authentification
    * @param {String} authBaseUrl la nouvelle url de l'api d authentification
    * @param {String} clientId le nouveau client id
-   * @param {String} clientSecret le nouveau client secret
+   * @param {String} clientSecret le nouveau client secret (optionnel, non présent si PKCE)
    * @return {Boolean} true si l'url a été changée
    */
-  setAuthParams(authBaseUrl, clientId, clientSecret) {
-    if (!authBaseUrl || !clientId || !clientSecret) return false;
+  setAuthParams(authBaseUrl, clientId, clientSecret = null) {
+    if (!authBaseUrl || !clientId) return false;
     try {
       this.disconnect();
       this.clientAuth = new AuthClient(authBaseUrl, clientId, clientSecret)
@@ -130,13 +131,19 @@ class ApiClient {
    * @param {Object} config 
    */
   async addAuthorization(config) {
-    if (this.username && this.password) {
-      let credentials = {
-        username: this.username,
-        password: JSON.parse(CryptoJS.AES.decrypt(this.password, this.secret).toString(CryptoJS.enc.Utf8))
-      };
-      let accessToken = await this.clientAuth.fetchToken(credentials);
+    if (this.clientAuth.usesExternalToken) { // si utilise token externe
+      let accessToken = await this.clientAuth.fetchToken(null);
       config["headers"] = { 'Authorization': 'Bearer ' + accessToken };
+    }
+    else { // si utilise credentials
+      if (this.username && this.password) {
+        let credentials = {
+          username: this.username,
+          password: JSON.parse(CryptoJS.AES.decrypt(this.password, this.secret).toString(CryptoJS.enc.Utf8))
+        };
+        let accessToken = await this.clientAuth.fetchToken(credentials);
+        config["headers"] = { 'Authorization': 'Bearer ' + accessToken };
+      }
     }
   }
 
