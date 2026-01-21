@@ -21,7 +21,7 @@ export class UserDomain extends BaseResource {
    * @param {Object} parameters 
    * @returns {Promise}
    */
-  async get(id = "me", parameters = []) {
+  async get(id = "me", parameters = {}) {
     if (id != "me" && (isNaN(parseInt(id)) || parseInt(id) < 0)) throw new ApiError('id must be "me" or positive number', ErrorCode.USER_ID_INVALID);
     validator.validateParams(parameters, 'getUser');
     return await this.client.doRequest('/users/' + id, "get", null, parameters);

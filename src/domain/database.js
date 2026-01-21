@@ -7,7 +7,7 @@ export class DatabaseDomain extends BaseResource {
    * @param {Object} parameters 
    * @returns {Promise}
    */
-  async getAll(parameters = []) {
+  async getAll(parameters = {}) {
     this.requireAuth();
     validator.validateParams(parameters, 'getDatabases');
     return await this.client.doRequest('/databases', "get", null, parameters);
@@ -19,7 +19,7 @@ export class DatabaseDomain extends BaseResource {
    * @param {Object} parameters 
    * @returns {Promise}
    */
-  async get(id, parameters = []) {
+  async get(id, parameters = {}) {
     this.requireAuth();
     validator.validateId(id)
     validator.validateParams(parameters, 'getDatabase');

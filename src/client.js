@@ -18,8 +18,6 @@ import { ReportDomain } from './domain/index.js';
 import { TableDomain } from './domain/index.js';
 import { TransactionDomain } from './domain/index.js';
 
-const CONN_ERROR = 'The request is unauthorized without being connected';
-
 /**
  * Entrée de l'api cliente.
  * La plupart des fonctions sont des raccourcis de la méthode doRequest
@@ -243,10 +241,10 @@ class ApiClient {
   }
 
   // Fonctions gardées pour rétro-compatibilité
-  async getUsers(parameters = []) {
+  async getUsers(parameters = {}) {
     return await this.user.getAll(parameters);
   }
-  async getUser(id = "me", parameters = []) {
+  async getUser(id = "me", parameters = {}) {
     return await this.user.get(id, parameters);
   }
   async patchUser(id, body = null, contentType = null) {
@@ -257,10 +255,10 @@ class ApiClient {
   }
 
   // Fonctions gardées pour rétro-compatibilité
-  async getDatabases(parameters = []) {
+  async getDatabases(parameters = {}) {
     return await this.database.getAll(parameters);
   }
-  async getDatabase(id, parameters = []) {
+  async getDatabase(id, parameters = {}) {
     return await this.database.get(id, parameters);
   }
   async addDatabase(body, contentType = null) {
@@ -277,10 +275,10 @@ class ApiClient {
   }
 
   // Fonctions gardées pour rétro-compatibilité
-  async getCommunities(parameters = []) {
+  async getCommunities(parameters = {}) {
     return await this.community.getAll(parameters);
   }
-  async getCommunity(id, parameters = []) {
+  async getCommunity(id, parameters = {}) {
     return await this.community.get(id, parameters);
   }
   async addCommunity(body, contentType = null) {
@@ -296,796 +294,182 @@ class ApiClient {
     return await this.community.delete(id);
   }
 
-  /**
-   * Récupère toutes les permissions (les 10 premières par defaut)
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
-  async getPermissions(parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateParams(parameters, 'getPermissions');
-    return await this.doRequest('/permissions', "get", null, parameters);
+  // Fonctions gardées pour rétro-compatibilité
+  async getPermissions(parameters = {}) {
+    return await this.permission.getAll(parameters);
   }
-
-  /**
-   * Récupère la permission d'identifiant donné
-   * @param {Integer} id
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
-  async getPermission(id, parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id)
-    validator.validateParams(parameters, 'getPermission');
-    let url = '/permissions/' + id;
-    return await this.doRequest(url, "get", null, parameters);
+  async getPermission(id, parameters = {}) {
+    return await this.permission.get(id, parameters);
   }
-
-  /**
-   * Ajoute une permission
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async addPermission(body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateBody(body, "addPermission");
-    return await this.doRequest("/permissions", "post", body, null, contentType);
+    return await this.permission.add(body, contentType);
   }
-
-  /**
-   * Met a jour une permission en remplaçant la totalité de l'objet
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async putPermission(id, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id)
-    validator.validateBody(body, "putPermission");
-    let url = '/permissions/' + id;
-    return await this.doRequest(url, "put", body, null, contentType);
+    return await this.permission.put(id, body, contentType);
   }
-
-  /**
-   * Met a jour une permission sans remplacer la totalité de l'objet
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async patchPermission(id, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id)
-    validator.validateBody(body, "patchPermission");
-    let url = '/permissions/' + id;
-    return await this.doRequest(url, "patch", body, null, contentType);
+    return await this.permission.patch(id, body, contentType);
   }
-
-  /**
-   * Supprime la permission d'identifiant donné
-   * @param {Integer} id 
-   * @returns {Promise}
-   */
   async deletePermission(id) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id);
-    let url = '/permissions/' + id;
-    return await this.doRequest(url, "delete");
+    return await this.permission.delete(id);
   }
 
-  /**
-   * Récupère tous les geoservices (les 10 premiers par defaut)
-   * @param {Object} parameters
-   * @returns {Promise}
-   */
-  async getGeoservices(parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateParams(parameters, 'getGeoservices');
-    return await this.doRequest('/geoservices', "get", null, parameters);
+  // Fonctions gardées pour rétro-compatibilité
+  async getGeoservices(parameters = {}) {
+    return await this.geoservice.getAll(parameters);
   }
-
-  /**
-   * Récupère le geoservice d'identifiant donné
-   * @param {Integer} id
-   * @param {Object} parameters
-   * @returns {Promise}
-   */
-  async getGeoservice(id, parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id);
-    validator.validateParams(parameters, "getGeoservice");
-    let url = '/geoservices/' + id;
-    return await this.doRequest(url, "get", null, parameters);
+  async getGeoservice(id, parameters = {}) {
+    return await this.geoservice.get(id, parameters);
   }
-
-  /**
-   * Ajoute un geoservice
-   * @param {Object} body
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async addGeoservice(body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateBody(body, "addGeoservice");
-    return await this.doRequest("/geoservices", "post", body, null, contentType);
+    return await this.geoservice.add(body, contentType);
   }
-
-  /**
-   * Met a jour un geoservice en remplaçant la totalité de l'objet
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async putGeoservice(id, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id)
-    validator.validateBody(body, "putGeoservice");
-    let url = '/geoservices/' + id;
-    return await this.doRequest(url, "put", body, null, contentType);
+    return await this.geoservice.put(id, body, contentType);
   }
-
-  /**
-   * Met a jour un geoservice sans remplacer la totalité de l'objet
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async patchGeoservice(id, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id)
-    validator.validateBody(body, "patchGeoservice");
-    let url = '/geoservices/' + id;
-    return await this.doRequest(url, "patch", body, null, contentType);
+    return await this.geoservice.patch(id, body, contentType);
   }
-
-  /**
-   * Supprime le geoservice d'identifiant donné
-   * @param {Integer} id 
-   * @returns {Promise}
-   */
   async deleteGeoservice(id) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id);
-    let url = '/geoservices/' + id;
-    return await this.doRequest(url, "delete");
+    return await this.geoservice.delete(id);
   }
 
-  /**
-   * Récupère toutes les alertes (les 10 premières par defaut)
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
-  async getReports(parameters = []) {
-    validator.validateParams(parameters, 'getReports');
-    return await this.doRequest('/reports', "get", null, parameters);
+  // Fonctions gardées pour rétro-compatibilité
+  async getReports(parameters = {}) {
+    return await this.report.getAll(parameters);
   }
-
-  /**
-   * Récupère l'alerte d'identifiant donné
-   * @param {Integer} id
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
-  async getReport(id, parameters = []) {
-    validator.validateId(id)
-    validator.validateParams(parameters, 'getReport');
-    let url = '/reports/' + id;
-    return await this.doRequest(url, "get", null, parameters);
+  async getReport(id, parameters = {}) {
+    return await this.report.get(id, parameters);
   }
-
-  /**
-   * Ajoute une alerte
-   * @param {Object} body 
-   * documents must be passed as blob
-   * @returns {Promise}
-   */
   async addReport(body) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateBody(body, "addReport");
-    validator.validateNbDocs(body);
-
-    return await this.doRequest("/reports", "post", body, null, 'multipart/form-data');
+    return await this.report.add(body);
   }
-
-  /**
-   * Met a jour une alerte en remplaçant la totalité de l'objet
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @returns {Promise}
-   */
   async putReport(id, body) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id)
-    validator.validateBody(body, "putReport");
-    validator.validateNbDocs(body);
-    let url = '/reports/' + id;
-    return await this.doRequest(url, "put", body, null, 'multipart/form-data');
+    return await this.report.put(id, body);
   }
-
-  /**
-   * Met a jour une alerte sans remplacer la totalité de l'objet
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @returns {Promise}
-   */
   async patchReport(id, body) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id)
-    validator.validateBody(body, "patchReport");
-    let url = '/reports/' + id;
-    return await this.doRequest(url, "patch", body);
+    return await this.report.patch(id, body);
   }
-
-  /**
-   * Supprime l'alerte d'identifiant donné
-   * @param {Integer} id 
-   * @returns {Promise}
-   */
   async deleteReport(id) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id);
-    let url = '/reports/' + id;
-    return await this.doRequest(url, "delete");
+    return await this.report.delete(id);
   }
-
-  /**
-   * Ajoute un ou plusieurs documents a une alerte (max 4)
-   * @param {Integer} reportId l identifiant de l alerte
-   * @returns {Promise}
-   */
   async addAttachments(reportId, body) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(reportId);
-    validator.validateNbDocs(body);
-    return await this.doRequest("/reports/" + reportId + "/attachments", "post", body, null, 'multipart/form-data');
+    return await this.report.addAttachments(reportId, body);
   }
-
-  /**
-   * Ajoute une reponse a une alerte
-   * @param {Integer} reportId
-   * @param {Object} body
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async addReply(reportId, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(reportId)
-    validator.validateBody(body, "addReply");
-    let url = '/reports/' + reportId + '/replies';
-    return await this.doRequest(url, "post", body, null, contentType);
+    return await this.report.addReply(reportId, body, contentType);
   }
 
-  /**
-   * Récupère toutes les couches (les 10 premières par defaut)
-   * @param {Integer} communityId l'identifiant de groupe auquel est rattachée la couche
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
-  async getLayers(communityId, parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(communityId);
-    validator.validateParams(parameters, 'getLayers');
-    let url = '/communities/' + communityId + '/layers';
-    return await this.doRequest(url, "get", null, parameters);
+  // Fonctions gardées pour rétro-compatibilité
+  async getLayers(communityId, parameters = {}) {
+    return await this.layer.getAll(communityId, parameters);
   }
-
-  /**
-   * Récupère la couche d'identifiant donné
-   * @param {Integer} communityId l'identifiant de groupe auquel est rattachée la couche
-   * @param {Integer} id
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
-  async getLayer(communityId, id, parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(communityId);
-    validator.validateId(id);
-    validator.validateParams(parameters, 'getLayer');
-    let url = '/communities/' + communityId + '/layers/' + id;
-    return await this.doRequest(url, "get", null, parameters);
+  async getLayer(communityId, id, parameters = {}) {
+    return await this.layer.get(communityId, id, parameters);
   }
-
-  /**
-   * Ajoute une couche
-   * @param {Integer} communityId l'identifiant de groupe auquel est rattachée la couche
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async addLayer(communityId, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(communityId);
-    validator.validateBody(body, "addLayer");
-    let url = '/communities/' + communityId + '/layers';
-    return await this.doRequest(url, "post", body, null, contentType);
+    return await this.layer.add(communityId, body, contentType);
   }
-
-  /**
-   * Met a jour une couche en remplaçant la totalité de l'objet
-   * @param {Integer} communityId l'identifiant de groupe auquel est rattachée la couche
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async putLayer(communityId, id, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(communityId);
-    validator.validateId(id)
-    validator.validateBody(body, "putLayer");
-    let url = '/communities/' + communityId + '/layers/' + id;
-    return await this.doRequest(url, "put", body, null, contentType);
+    return await this.layer.put(communityId, id, body, contentType);
   }
-
-  /**
-   * Met a jour une couche sans remplacer la totalité de l'objet
-   * @param {Integer} communityId l'identifiant de groupe auquel est rattachée la couche
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async patchLayer(communityId, id, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(communityId);
-    validator.validateId(id)
-    validator.validateBody(body, "patchLayer");
-    let url = '/communities/' + communityId + '/layers/' + id;
-    return await this.doRequest(url, "patch", body, null, contentType);
+    return await this.layer.patch(communityId, id, body, contentType);
   }
-
-  /**
-   * Supprime la couche d'identifiant donné
-   * @param {Integer} communityId l'identifiant de groupe auquel est rattachée la couche
-   * @param {Integer} id 
-   * @returns {Promise}
-   */
   async deleteLayer(communityId, id) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(communityId);
-    validator.validateId(id);
-    let url = '/communities/' + communityId + '/layers/' + id;
-    return await this.doRequest(url, "delete");
+    return await this.layer.delete(communityId, id);
   }
 
-  /**
-   * Récupère toutes les transactions (les 10 premières par defaut)
-   * @param {Integer} databaseId l'identifiant de la base de données des transactions
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
-  async getTransactions(databaseId, parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateParams(parameters, "getTransactions");
-    let url = '/databases/' + databaseId + '/transactions';
-    return await this.doRequest(url, "get", null, parameters);
+  // Fonctions gardées pour rétro-compatibilité
+  async getTransactions(databaseId, parameters = {}) {
+    return await this.transaction.getAll(databaseId, parameters);
   }
-
-  /**
-   * Récupère la transaction d'identifiant donné
-   * @param {Integer} databaseId l'identifiant de base de données de la transaction
-   * @param {Integer} id
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
-  async getTransaction(databaseId, id, parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateId(id);
-    validator.validateParams(parameters, "getTransaction");
-    let url = '/databases/' + databaseId + '/tables/' + id;
-    return await this.doRequest(url, "get", null, parameters);
+  async getTransaction(databaseId, id, parameters = {}) {
+    return await this.transaction.get(databaseId, id, parameters);
   }
-
-  /**
-   * Ajoute une transaction
-   * @param {Integer} databaseId l'identifiant de base de données de la transaction
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async addTransaction(databaseId, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateBody(body, "addTransaction");
-    let url = '/databases/' + databaseId + '/transactions';
-    return await this.doRequest(url, 'post', body, null, contentType);
+    return await this.transaction.add(databaseId, body, contentType);
   }
 
-  /**
-   * Récupère toutes les tables (les 10 premières par defaut)
-   * @param {Integer} databaseId l'identifiant de la base de données des tables
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
-  async getTables(databaseId, parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateParams(parameters, "getTables");
-    let url = '/databases/' + databaseId + '/tables';
-    return await this.doRequest(url, "get", null, parameters);
+  // Fonctions gardées pour rétro-compatibilité
+  async getTables(databaseId, parameters = {}) {
+    return await this.table.getAll(databaseId, parameters);
   }
 
-  /**
-   * Récupère la table d'identifiant donné
-   * @param {Integer} databaseId l'identifiant de base de données de la table
-   * @param {Integer} id
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
-  async getTable(databaseId, id, parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateId(id);
-    validator.validateParams(parameters, "getTable");
-    let url = '/databases/' + databaseId + '/tables/' + id;
-    return await this.doRequest(url, "get", null, parameters);
+  async getTable(databaseId, id, parameters = {}) {
+    return await this.table.get(databaseId, id, parameters);
   }
-
-  /**
-   * Récupère le numrec maximum parmi les objets de la table
-   * @param {Integer} databaseId l'identifiant de base de données de la table
-   * @param {Integer} id
-   * @param {Object} parameters
-   * @returns {Promise}
-   */
-  async getTableMaxNumrec(databaseId, id, parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateId(id);
-    validator.validateParams(parameters, "getTableMaxNumrec");
-    let url = '/databases/' + databaseId + '/tables/' + id + '/max-numrec';
-    return await this.doRequest(url, "get", null, parameters);
+  async getTableMaxNumrec(databaseId, id, parameters = {}) {
+    return await this.table.getMaxNumrec(databaseId, id, parameters);
   }
-
-  /**
-   * Ajoute une table
-   * @param {Integer} databaseId l'identifiant de base de données de la table
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async addTable(databaseId, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateBody(body, "addTable");
-    let url = '/databases/' + databaseId + '/tables';
-    return await this.doRequest(url, 'post', body, null, contentType);
+    return await this.table.add(databaseId, body, contentType);
   }
-
-  /**
-   * Met a jour une table en remplaçant la totalité de l'objet
-   * @param {Integer} databaseId l'identifiant de base de données de la table
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async putTable(databaseId, id, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateId(id);
-    validator.validateBody(body, "putTable");
-    let url = '/databases/' + databaseId + '/tables/' + id;
-    return await this.doRequest(url, "put", body, null, contentType);
+    return await this.table.put(databaseId, id, body, contentType);
   }
-
-  /**
-   * Met a jour une table sans remplacer la totalité de l'objet
-   * @param {Integer} databaseId l'identifiant de base de données de la table
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async patchTable(databaseId, id, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateId(id);
-    validator.validateBody(body, "patchTable");
-    let url = '/databases/' + databaseId + '/tables/' + id;
-    return await this.doRequest(url, "patch", body, null, contentType);
+    return await this.table.patch(databaseId, id, body, contentType);
   }
-
-  /**
-   * Supprime la table d'identifiant donné
-   * @param {Integer} databaseId l'identifiant de base de données de la table
-   * @param {Integer} id 
-   * @returns {Promise}
-   */
   async deleteTable(databaseId, id) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateId(id);
-    let url = '/databases/' + databaseId + '/tables/' + id;
-    return await this.doRequest(url, "delete");
+    return await this.table.delete(databaseId, id);
   }
 
-  /**
-   * Récupère toutes les colonnes (les 10 premières par defaut)
-   * @param {Integer} databaseId l'identifiant de la base de données des colonnes
-   * @param {Integer} tableId l'identifiant de la table des colonnes
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
-  async getColumns(databaseId, tableId, parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateId(tableId);
-    validator.validateParams(parameters, "getColumns");
-    let url = '/databases/' + databaseId + '/tables/' + tableId + '/columns';
-    return await this.doRequest(url, "get", null, parameters);
+  // Fonctions gardées pour rétro-compatibilité
+  async getColumns(databaseId, tableId, parameters = {}) {
+    return await this.column.getAll(databaseId, tableId, parameters);
   }
-
-  /**
-   * Récupère la colonne d'identifiant donné
-   * @param {Integer} databaseId l'identifiant de base de données de la colonne
-   * @param {Integer} tableId l'identifiant de la table de la colonne
-   * @param {Integer} id
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
-  async getColumn(databaseId, tableId, id, parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateId(tableId);
-    validator.validateId(id);
-    validator.validateParams(parameters, "getColumn");
-    let url = '/databases/' + databaseId + '/tables/' + tableId + '/columns/' + id;
-    return await this.doRequest(url, "get", null, parameters);
+  async getColumn(databaseId, tableId, id, parameters = {}) {
+    return await this.column.get(databaseId, tableId, id, parameters);
   }
-
-  /**
-   * Ajoute une colonne
-   * @param {Integer} databaseId l'identifiant de base de données de la colonne
-   * @param {Integer} tableId l'identifiant de la table de la colonne
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async addColumn(databaseId, tableId, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateId(tableId);
-    validator.validateBody(body, "addColumn");
-    let url = '/databases/' + databaseId + '/tables/' + tableId + '/columns';
-    return await this.doRequest(url, 'post', body, null, contentType);
+    return await this.column.add(databaseId, tableId, body, contentType);
   }
-
-  /**
-   * Met a jour une colonne en remplacant la totalité de l'objet
-   * @param {Integer} databaseId l'identifiant de base de données de la colonne
-   * @param {Integer} tableId l'identifiant de la table de la colonne
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async putColumn(databaseId, tableId, id, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateId(tableId);
-    validator.validateId(id);
-    validator.validateBody(body, "putColumn");
-    let url = '/databases/' + databaseId + '/tables/' + tableId + '/columns/' + id;
-    return await this.doRequest(url, "put", body, null, contentType);
+    return await this.column.put(databaseId, tableId, id, body, contentType);
   }
-
-  /**
-   * Met a jour une colonne sans remplacer la totalité de l'objet
-   * @param {Integer} databaseId l'identifiant de base de données de la colonne
-   * @param {Integer} tableId l'identifiant de la table de la colonne
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async patchColumn(databaseId, tableId, id, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateId(tableId);
-    validator.validateId(id);
-    validator.validateBody(body, "patchColumn");
-    let url = '/databases/' + databaseId + '/tables/' + tableId + '/columns/' + id;
-    return await this.doRequest(url, "patch", body, null, contentType);
+    return await this.column.patch(databaseId, tableId, id, body, contentType);
   }
-
-  /**
-   * Supprime la colonne d'identifiant donné
-   * @param {Integer} databaseId l'identifiant de base de données de la colonne
-   * @param {Integer} tableId l'identifiant de la table de la colonne
-   * @param {Integer} id 
-   * @returns {Promise}
-   */
   async deleteColumn(databaseId, tableId, id) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateId(tableId);
-    validator.validateId(id);
-    let url = '/databases/' + databaseId + '/tables/' + tableId + '/columns/' + id;
-    return await this.doRequest(url, "delete");
+    return await this.column.delete(databaseId, tableId, id);
   }
 
-  /**
-   * Récupère tous les objets (les 10 premiers par defaut)
-   * @param {Integer} databaseId l'identifiant de la base de données des objets
-   * @param {Integer} tableId l'identifiant de la table des objets
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
-  async getFeatures(databaseId, tableId, parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateId(tableId);
-    validator.validateParams(parameters, "getFeatures");
-    let url = '/databases/' + databaseId + '/tables/' + tableId + '/features';
-    return await this.doRequest(url, "get", null, parameters);
+  // Fonctions gardées pour rétro-compatibilité
+  async getFeatures(databaseId, tableId, parameters = {}) {
+    return await this.feature.getAll(databaseId, tableId, parameters);
   }
-
-  /**
-   * Récupère l objet d'identifiant donné
-   * @param {Integer} databaseId l'identifiant de base de données de l objet
-   * @param {Integer} tableId l'identifiant de la table de l objet
-   * @param {Integer} id
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
-  async getFeature(databaseId, tableId, id, parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateId(tableId);
-    validator.validateId(id);
-    validator.validateParams(parameters, "getFeature");
-    let url = '/databases/' + databaseId + '/tables/' + tableId + '/features/' + id;
-    return await this.doRequest(url, "get", null, parameters);
+  async getFeature(databaseId, tableId, id, parameters = {}) {
+    return await this.feature.get(databaseId, tableId, id, parameters);
   }
-
-  /**
-   * Ajoute un objet
-   * @param {Integer} databaseId l'identifiant de base de données de l objet
-   * @param {Integer} tableId l'identifiant de la table de l objet
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async addFeature(databaseId, tableId, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateId(tableId);
-    let url = '/databases/' + databaseId + '/tables/' + tableId + '/features';
-    return await this.doRequest(url, 'post', body, null, contentType);
+    return await this.feature.add(databaseId, tableId, body, contentType);
   }
-
-  /**
-   * Met a jour un objet sans remplacer la totalité de l'objet
-   * @param {Integer} databaseId l'identifiant de base de données de l objet
-   * @param {Integer} tableId l'identifiant de la table de l objet
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async patchFeature(databaseId, tableId, id, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateId(tableId);
-    validator.validateId(id);
-    let url = '/databases/' + databaseId + '/tables/' + tableId + '/features/' + id;
-    return await this.doRequest(url, "patch", body, null, contentType);
+    return await this.feature.patch(databaseId, tableId, id, body, contentType);
   }
-
-  /**
-   * Supprime l'objet d'identifiant donné
-   * @param {Integer} databaseId l'identifiant de base de données de l objet
-   * @param {Integer} tableId l'identifiant de la table de l objet
-   * @param {Integer} id 
-   * @returns {Promise}
-   */
   async deleteFeature(databaseId, tableId, id) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(databaseId);
-    validator.validateId(tableId);
-    validator.validateId(id);
-    let url = '/databases/' + databaseId + '/tables/' + tableId + '/features/' + id;
-    return await this.doRequest(url, "delete");
+    return await this.feature.delete(databaseId, tableId, id);
   }
 
-  /**
-   * Récupère tous les membres (les 10 premiers par defaut)
-   * @param {Integer} communityId l'identifiant du groupe des membres
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
-  async getMembers(communityId, parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(communityId);
-    validator.validateParams(parameters, 'getMembers');
-    let url = '/communities/' + communityId + '/members';
-    return await this.doRequest(url, "get", null, parameters);
+  // Fonctions gardées pour rétro-compatibilité
+  async getMembers(communityId, parameters = {}) {
+    return await this.member.getAll(communityId, parameters);
   }
-
-  /**
-   * Récupère le membre d'identifiant donné
-   * @param {Integer} communityId l'identifiant du groupe du membre
-   * @param {Integer} id
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
-  async getMember(communityId, id, parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(communityId);
-    validator.validateId(id);
-    validator.validateParams(parameters, 'getMember');
-    let url = '/communities/' + communityId + '/members/' + id;
-    return await this.doRequest(url, "get", null, parameters);
+  async getMember(communityId, id, parameters = {}) {
+    return await this.member.get(communityId, id, parameters);
   }
-
-  /**
-   * Ajoute un membre
-   * @param {Integer} communityId l'identifiant du groupe du membre
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async addMember(communityId, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(communityId);
-    validator.validateBody(body, "addMember");
-    let url = '/communities/' + communityId + '/members';
-    return await this.doRequest(url, "post", body, null, contentType);
+    return await this.member.add(communityId, body, contentType);
   }
-
-  /**
-   * Met a jour un membre en remplaçant la totalité de l'objet
-   * @param {Integer} communityId l'identifiant du groupe du membre
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async putMember(communityId, id, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(communityId);
-    validator.validateId(id)
-    validator.validateBody(body, "putMember");
-    let url = '/communities/' + communityId + '/members/' + id;
-    return await this.doRequest(url, "put", body, null, contentType);
+    return await this.member.put(communityId, id, body, contentType);
   }
-
-  /**
-   * Met a jour un membre sans remplacer la totalité de l'objet
-   * @param {Integer} communityId l'identifiant du groupe du membre
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async patchMember(communityId, id, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(communityId);
-    validator.validateId(id)
-    validator.validateBody(body, "patchMember");
-    let url = '/communities/' + communityId + '/members/' + id;
-    return await this.doRequest(url, "patch", body, null, contentType);
+    return await this.member.patch(communityId, id, body, contentType);
   }
-
-  /**
-   * Supprime le membre d'identifiant donné
-   * @param {Integer} communityId l'identifiant du groupe du membre
-   * @param {Integer} id 
-   * @returns {Promise}
-   */
   async deleteMember(communityId, id) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(communityId);
-    validator.validateId(id);
-    let url = '/communities/' + communityId + '/members/' + id;
-    return await this.doRequest(url, "delete");
+    return await this.member.delete(communityId, id);
   }
 }
 
