@@ -21,7 +21,7 @@ export class UserDomain extends BaseResource {
    * @param {Object} parameters 
    * @returns {Promise}
    */
-  async getUser(id = "me", parameters = []) {
+  async get(id = "me", parameters = []) {
     if (id != "me" && (isNaN(parseInt(id)) || parseInt(id) < 0)) throw new ApiError('id must be "me" or positive number', ErrorCode.USER_ID_INVALID);
     validator.validateParams(parameters, 'getUser');
     return await this.client.doRequest('/users/' + id, "get", null, parameters);
@@ -34,7 +34,7 @@ export class UserDomain extends BaseResource {
    * @param {String} contentType si besoin autre que json
    * @returns {Promise}
    */
-  async patchUser(id, body = null, contentType = null) {
+  async patch(id, body = null, contentType = null) {
     this.requireAuth();
     validator.validateId(id);
     validator.validateBody(body, 'patchUser');
@@ -46,7 +46,7 @@ export class UserDomain extends BaseResource {
    * @param {Integer} id 
    * @returns {Promise}
    */
-  async deleteUser(id) {
+  async delete(id) {
     this.requireAuth();
     validator.validateId(id);
     return await this.client.doRequest('/users/' + id, "delete");

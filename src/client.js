@@ -6,6 +6,7 @@ import axios from 'axios';
 import { ApiError, ErrorCode } from './error.js';
 
 import { UserDomain } from './domain/index.js';
+import { DatabaseDomain } from './domain/index.js';
 
 const CONN_ERROR = 'The request is unauthorized without being connected';
 
@@ -42,6 +43,7 @@ class ApiClient {
 
   _initResources() {
     this.user = new UserDomain(this);
+    this.database = new DatabaseDomain(this);
   }
 
   /**
@@ -225,92 +227,33 @@ class ApiClient {
     return await this.user.getAll(parameters);
   }
   async getUser(id = "me", parameters = []) {
-    return await this.user.getUser(id, parameters);
+    return await this.user.get(id, parameters);
   }
   async patchUser(id, body = null, contentType = null) {
-    return await this.user.patchUser(id, body, contentType);
+    return await this.user.patch(id, body, contentType);
   }
   async deleteUser(id) {
-    return await this.user.deleteUser(id);
+    return await this.user.delete(id);
   }
 
-  /**
-   * Récupère toutes les bases de données (les 10 premières par defaut)
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
+  // Fonctions gardées pour rétro-compatibilité
   async getDatabases(parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateParams(parameters, 'getDatabases');
-    return await this.doRequest('/databases', "get", null, parameters);
+    return await this.database.getAll(parameters);
   }
-
-  /**
-   * Récupère la base de données d'identifiant donné
-   * @param {Integer} id
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
   async getDatabase(id, parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id)
-    validator.validateParams(parameters, 'getDatabase');
-    let url = '/databases/' + id;
-    return await this.doRequest(url, "get", null, parameters);
+    return await this.database.get(id, parameters);
   }
-
-  /**
-   * Ajoute une base de données
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async addDatabase(body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateBody(body, "addDatabase");
-    return await this.doRequest("/databases", "post", body, null, contentType);
+    return await this.database.add(body, contentType);
   }
-
-  /**
-   * Met a jour une base de données en remplacant la totalité de l'objet
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async putDatabase(id, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id)
-    validator.validateBody(body, "putDatabase");
-    let url = '/databases/' + id;
-    return await this.doRequest(url, "put", body, null, contentType);
+    return await this.database.put(id, body, contentType);
   }
-
-  /**
-   * Met a jour une base de données sans remplacer la totalité de l'objet
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async patchDatabase(id, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id)
-    validator.validateBody(body, "patchDatabase");
-    let url = '/databases/' + id;
-    return await this.doRequest(url, "patch", body, null, contentType);
+    return await this.database.patch(id, body, contentType);
   }
-
-  /**
-   * Supprime la base de données d'identifiant donné
-   * @param {Integer} id 
-   * @returns {Promise}
-   */
   async deleteDatabase(id) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id);
-    let url = '/databases/' + id;
-    return await this.doRequest(url, "delete");
+    return await this.database.delete(id);
   }
 
   /**
