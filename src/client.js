@@ -5,6 +5,8 @@ import * as CryptoJS from 'crypto-js';
 import axios from 'axios';
 import { ApiError, ErrorCode } from './error.js';
 
+import { UserDomain } from './domain/index.js';
+
 const CONN_ERROR = 'The request is unauthorized without being connected';
 
 /**
@@ -32,7 +34,14 @@ class ApiClient {
     }
     this.axiosInstance = axios.create({
       baseURL: apiBaseUrl
-    })
+    });
+
+    // Initialiser les ressources
+    this._initResources();
+  }
+
+  _initResources() {
+    this.user = new UserDomain(this);
   }
 
   /**
@@ -98,6 +107,24 @@ class ApiClient {
     }
 
     if (this.username && username != this.username) this.disconnect();
+  }
+
+  /**
+     * Configure un token obtenu via SSO externe (PKCE ou autre)
+     * Permet d'utiliser l'API sans fournir de credentials
+     * @param {String} accessToken - Le token d'accès OAuth2
+     * @param {String} refreshToken - Le refresh token (optionnel)
+     * @param {Number} expiresIn - Durée de validité en secondes (défaut: 43200 -> 12 heures)
+     * @param {Number} refreshExpiresIn - Durée du refresh token en secondes
+     */
+  setExternalToken(accessToken, refreshToken = null, expiresIn = 43200, refreshExpiresIn = null) {
+    if (!this.clientAuth) {
+      throw new ApiError('Auth client must be configured first. Call setAuthParams() before setExternalToken()', ErrorCode.CLIENT_CONFIGURATION_ERROR);
+    }
+    this.clientAuth.setExternalToken(accessToken, refreshToken, expiresIn, refreshExpiresIn);
+    // Nettoyer les credentials stockés
+    this.username = null;
+    this.password = null;
   }
 
   /**

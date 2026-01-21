@@ -1,0 +1,1 @@
+export { UserDomain } from './user.js';
