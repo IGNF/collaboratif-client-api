@@ -1,3 +1,4 @@
+import { ApiError, ErrorCode } from './error.js';
 export class BaseResource {
   /**
      * @param {Object} client - Instance de ApiClient
@@ -12,7 +13,7 @@ export class BaseResource {
    */
   requireAuth() {
     if (this.client.isConnected() === false) {
-      throw new Error('The request is unauthorized without being connected');
+      throw new ApiError('The request is unauthorized without being connected', ErrorCode.UNAUTHORIZED);
     }
   }
 }
