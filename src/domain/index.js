@@ -1,3 +1,12 @@
 export { UserDomain } from './user.js';
 export { DatabaseDomain } from './database.js';
 export { CommunityDomain } from './community.js';
+export { ColumnDomain } from './column.js';
+export { FeatureDomain } from './feature.js';
+export { GeoserviceDomain } from './geoservice.js';
+export { LayerDomain } from './layer.js';
+export { MemberDomain } from './member.js';
+export { PermissionDomain } from './permission.js';
+export { ReportDomain } from './report.js';
+export { TableDomain } from './table.js';
+export { TransactionDomain } from './transaction.js';

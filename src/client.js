@@ -8,6 +8,15 @@ import { ApiError, ErrorCode } from './error.js';
 import { UserDomain } from './domain/index.js';
 import { DatabaseDomain } from './domain/index.js';
 import { CommunityDomain } from './domain/index.js';
+import { ColumnDomain } from './domain/index.js';
+import { FeatureDomain } from './domain/index.js';
+import { GeoserviceDomain } from './domain/index.js';
+import { LayerDomain } from './domain/index.js';
+import { MemberDomain } from './domain/index.js';
+import { PermissionDomain } from './domain/index.js';
+import { ReportDomain } from './domain/index.js';
+import { TableDomain } from './domain/index.js';
+import { TransactionDomain } from './domain/index.js';
 
 const CONN_ERROR = 'The request is unauthorized without being connected';
 
@@ -46,6 +55,15 @@ class ApiClient {
     this.user = new UserDomain(this);
     this.database = new DatabaseDomain(this);
     this.community = new CommunityDomain(this);
+    this.column = new ColumnDomain(this);
+    this.feature = new FeatureDomain(this);
+    this.geoservice = new GeoserviceDomain(this);
+    this.layer = new LayerDomain(this);
+    this.member = new MemberDomain(this);
+    this.permission = new PermissionDomain(this);
+    this.report = new ReportDomain(this);
+    this.table = new TableDomain(this);
+    this.transaction = new TransactionDomain(this);
   }
 
   /**
