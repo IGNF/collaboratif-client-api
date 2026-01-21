@@ -220,56 +220,18 @@ class ApiClient {
     return await this.axiosInstance.request(config);
   }
 
-  /**
-   * Récupère tous les utilisateurs (les 10 premiers par defaut)
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
+  // Fonctions gardées pour rétro-compatibilité
   async getUsers(parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateParams(parameters, 'getUsers');
-    return await this.doRequest("/users", "get", null, parameters);
+    return await this.user.getAll(parameters);
   }
-
-  /**
-   * Récupère l'utilisateur d'identifiant donné
-   * @param {Integer|String} id un identifiant ou "me"
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
   async getUser(id = "me", parameters = []) {
-    if (id != "me" && (isNaN(parseInt(id)) || parseInt(id) < 0)) throw 'id must be "me" or positive number'
-    validator.validateParams(parameters, 'getUser');
-    let url = '/users/' + id;
-    return await this.doRequest(url, "get", null, parameters);
+    return await this.user.getUser(id, parameters);
   }
-
-  /**
-   * Met a jour un utilisateur sans remplacer la totalité de l'objet
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async patchUser(id, body = null, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id)
-    validator.validateBody(body, 'patchUser');
-    let url = '/users/' + id;
-    return await this.doRequest(url, "patch", body, null, contentType);
+    return await this.user.patchUser(id, body, contentType);
   }
-
-  /**
-   * Supprime l'utilisateur d'identifiant donné
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @returns {Promise}
-   */
   async deleteUser(id) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id);
-    let url = '/users/' + id;
-    return await this.doRequest(url, "delete");
+    return await this.user.deleteUser(id);
   }
 
   /**
