@@ -7,6 +7,7 @@ import { ApiError, ErrorCode } from './error.js';
 
 import { UserDomain } from './domain/index.js';
 import { DatabaseDomain } from './domain/index.js';
+import { CommunityDomain } from './domain/index.js';
 
 const CONN_ERROR = 'The request is unauthorized without being connected';
 
@@ -44,6 +45,7 @@ class ApiClient {
   _initResources() {
     this.user = new UserDomain(this);
     this.database = new DatabaseDomain(this);
+    this.community = new CommunityDomain(this);
   }
 
   /**
@@ -256,83 +258,24 @@ class ApiClient {
     return await this.database.delete(id);
   }
 
-  /**
-   * Récupère tous les groupes (les 10 premiers par defaut)
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
+  // Fonctions gardées pour rétro-compatibilité
   async getCommunities(parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateParams(parameters, 'getCommunities');
-    return await this.doRequest('/communities', "get", null, parameters);
+    return await this.community.getAll(parameters);
   }
-
-  /**
-   * Récupère le groupe d'identifiant donné
-   * @param {Integer} id
-   * @param {Object} parameters 
-   * @returns {Promise}
-   */
   async getCommunity(id, parameters = []) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id)
-    validator.validateParams(parameters, 'getCommunity');
-    let url = '/communities/' + id;
-    return await this.doRequest(url, "get", null, parameters);
+    return await this.community.get(id, parameters);
   }
-
-  /**
-   * Ajoute un groupe
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async addCommunity(body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateBody(body, "addCommunity");
-    return await this.doRequest("/communities", "post", body, null, contentType);
+    return await this.community.add(body, contentType);
   }
-
-  /**
-   * Met a jour un groupe en remplacant la totalité de l'objet
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async putCommunity(id, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id)
-    validator.validateBody(body, "putCommunity");
-    let url = '/communities/' + id;
-    return await this.doRequest(url, "put", body, null, contentType);
+    return await this.community.put(id, body, contentType);
   }
-
-  /**
-   * Met a jour un groupe sans remplacer la totalité de l'objet
-   * @param {Integer} id 
-   * @param {Object} body 
-   * @param {String} contentType si besoin autre que json
-   * @returns {Promise}
-   */
   async patchCommunity(id, body, contentType = null) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id)
-    validator.validateBody(body, "patchCommunity");
-    let url = '/communities/' + id;
-    return await this.doRequest(url, "patch", body, null, contentType);
+    return await this.community.patch(id, body, contentType);
   }
-
-  /**
-   * Supprime le groupe d'identifiant donné
-   * @param {Integer} id 
-   * @returns {Promise}
-   */
   async deleteCommunity(id) {
-    if (this.isConnected() === false) throw new Error(CONN_ERROR);
-    validator.validateId(id);
-    let url = '/communities/' + id;
-    return await this.doRequest(url, "delete");
+    return await this.community.delete(id);
   }
 
   /**
