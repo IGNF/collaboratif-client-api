@@ -178,6 +178,9 @@ class ApiClient {
    * @param {Object} config 
    */
   async addAuthorization(config) {
+    if(!this.clientAuth){
+      throw new ApiError('Auth client must be configured first. Call setAuthParams() before adding authorization', ErrorCode.CLIENT_CONFIGURATION_ERROR);
+    }
     if (this.clientAuth.usesExternalToken) { // si utilise token externe
       let accessToken = await this.clientAuth.fetchToken(null);
       config["headers"] = { 'Authorization': 'Bearer ' + accessToken };

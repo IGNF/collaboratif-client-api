@@ -1,3 +1,4 @@
-import {ApiClient} from './src/client.js';
+import { ApiClient } from './src/client.js';
+export { ApiError, ErrorCode } from './src/error.js';
 
-export {ApiClient};
+export { ApiClient };

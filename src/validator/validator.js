@@ -1,4 +1,4 @@
-import {parameters, fields, mandatoryFields} from './parameters';
+import { parameters, fields, mandatoryFields } from './parameters.js';
 
 /**
  * Validation des paramètres get passés dans la requête. 
@@ -10,11 +10,11 @@ import {parameters, fields, mandatoryFields} from './parameters';
  * @throw Exception si un parametre inconnu est trouve
  */
 function validateParams(params, fct) {
-	let paramList = parameters[fct] ? parameters[fct] : (parameters[fct.substring(0,3)] ? parameters[fct.substring(0,3)] : null);
-	if (!paramList) return;
-	for (const name in params) {
-		if (paramList.indexOf(name) == -1) throw 'Invalid parameter ' + name + ': must be in [' + paramList.concat(', ')+ ']';
-	}
+  let paramList = parameters[fct] ? parameters[fct] : (parameters[fct.substring(0, 3)] ? parameters[fct.substring(0, 3)] : null);
+  if (!paramList) return;
+  for (const name in params) {
+    if (paramList.indexOf(name) == -1) throw 'Invalid parameter ' + name + ': must be in [' + paramList.concat(', ') + ']';
+  }
 }
 
 /**
@@ -24,7 +24,7 @@ function validateParams(params, fct) {
  * @throw Exception si l'id n'est pas un nombre ou s'il est négatif
  */
 function validateId(id) {
-	if (isNaN(parseInt(id)) || parseInt(id) < 0) throw 'id must be a positive number'
+  if (isNaN(parseInt(id)) || parseInt(id) < 0) throw 'id must be a positive number'
 }
 
 /**
@@ -37,20 +37,20 @@ function validateId(id) {
  * @throw Exception si un parametre inconnu est trouve ou si un parametre obligatoire est manquant
  */
 function validateBody(body, fct) {
-	const objName = fct.replace(/add|put|patch/, '').toLowerCase();
-	let fieldsList = fields[objName] ? fields[objName]: null;
-	let mandatoryFieldsList = mandatoryFields[objName] ? mandatoryFields[objName]: null;
-	if (fieldsList) {
-		for (const fieldName in body) {
-			if (fieldsList.indexOf(fieldName) == -1 && !(body[fieldName] instanceof Blob)) throw 'Invalid field ' + fieldName + ': must be in [' + fieldsList.concat(', ')+ ']';
-		}
-	}
-	
-	if (fct.indexOf("patch") == -1) {
-		for (const i in mandatoryFieldsList) {
-			if (Object.keys(body).indexOf(mandatoryFieldsList[i]) == -1) throw 'Missing mandatory field ' + mandatoryFieldsList[i];
-		}
-	}	
+  const objName = fct.replace(/add|put|patch/, '').toLowerCase();
+  let fieldsList = fields[objName] ? fields[objName] : null;
+  let mandatoryFieldsList = mandatoryFields[objName] ? mandatoryFields[objName] : null;
+  if (fieldsList) {
+    for (const fieldName in body) {
+      if (fieldsList.indexOf(fieldName) == -1 && !(body[fieldName] instanceof Blob)) throw 'Invalid field ' + fieldName + ': must be in [' + fieldsList.concat(', ') + ']';
+    }
+  }
+
+  if (fct.indexOf("patch") == -1) {
+    for (const i in mandatoryFieldsList) {
+      if (Object.keys(body).indexOf(mandatoryFieldsList[i]) == -1) throw 'Missing mandatory field ' + mandatoryFieldsList[i];
+    }
+  }
 }
 
 /**
@@ -59,13 +59,13 @@ function validateBody(body, fct) {
  * @throw Exception si plus de 4 documents
  */
 function validateNbDocs(body) {
-	let docCounter = 0;
-	for (var key in body) {
-		if (body[key] instanceof Blob) {
-			docCounter += 1;
-			if (docCounter > 4) throw 'Maximum 4 documents';
-		}
-	}
+  let docCounter = 0;
+  for (var key in body) {
+    if (body[key] instanceof Blob) {
+      docCounter += 1;
+      if (docCounter > 4) throw 'Maximum 4 documents';
+    }
+  }
 }
 
-export {validateParams, validateId, validateBody, validateNbDocs};
+export { validateParams, validateId, validateBody, validateNbDocs };

@@ -229,8 +229,10 @@ class AuthClient {
       if (!this.isTokenExpired()) {
         let revokeParams = {
           'client_id': this.clientId,
-          'client_secret': this.clientSecret,
           'token': this.token
+        }
+        if(this.clientSecret){
+          revokeParams['client_secret'] = this.clientSecret;
         }
         const params = new URLSearchParams(revokeParams);
         await this.axiosInstance.post('/revoke', params);
