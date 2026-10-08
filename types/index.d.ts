@@ -560,6 +560,13 @@ export class FeatureDomain {
  * Entrée de l'api cliente.
  * La plupart des fonctions sont des raccourcis de la méthode doRequest
  */
+export interface ApiClientOptions {
+  /** Maximum request departures per second. 0 disables the spacing. Default: 25. */
+  requestsPerSecond?: number;
+  /** Extra attempts after an HTTP 429. Default: 3. */
+  maxRetries?: number;
+}
+
 export class ApiClient {
   /** Instance du client d'authentification (disponible après setAuthParams) */
   clientAuth: AuthClient | undefined;
@@ -590,7 +597,10 @@ export class ApiClient {
    * @param clientId
    * @param clientSecret
    */
-  constructor(apiBaseUrl: string, authBaseUrl?: string | null, clientId?: string | null, clientSecret?: string | null);
+  constructor(apiBaseUrl: string, authBaseUrl?: string | null, clientId?: string | null, clientSecret?: string | null, options?: ApiClientOptions);
+
+  requestsPerSecond: number;
+  maxRetries: number;
 
   /**
    * Changement de l'url de base de l'api

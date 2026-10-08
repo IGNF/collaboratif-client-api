@@ -17,6 +17,10 @@ import { PermissionDomain } from './domain/index.js';
 import { ReportDomain } from './domain/index.js';
 import { TableDomain } from './domain/index.js';
 import { TransactionDomain } from './domain/index.js';
+import { delay, RequestScheduler, retryAfterMs } from './requestScheduler.js';
+
+const DEFAULT_REQUESTS_PER_SECOND = 25;
+const DEFAULT_MAX_RETRIES = 3;
 
 /**
  * Entrée de l'api cliente.
@@ -27,11 +31,16 @@ class ApiClient {
    * @constructor
    * @param {String} apiBaseUrl ex: https://espacecollaboratif.ign.fr/gcms/api
    * @param {String} authBaseUrl ex: https://iam-url/auth/realms/demo/protocol/openid-connect
-   * @param {String} clientId 
-   * @param {String} clientSecret 
+   * @param {String} clientId
+   * @param {String} clientSecret
+   * @param {{ requestsPerSecond?: number, maxRetries?: number }} options
    */
-  constructor(apiBaseUrl, authBaseUrl = null, clientId = null, clientSecret = null) {
+  constructor(apiBaseUrl, authBaseUrl = null, clientId = null, clientSecret = null, options = {}) {
     if (!apiBaseUrl) throw new ApiError('Mandatory parameter apiBaseUrl is missing.', ErrorCode.BASE_URL_MISSING);
+    const settings = options ?? {};
+    this.requestsPerSecond = settings.requestsPerSecond ?? DEFAULT_REQUESTS_PER_SECOND;
+    this.maxRetries = settings.maxRetries ?? DEFAULT_MAX_RETRIES;
+    this.requestScheduler = new RequestScheduler(this.requestsPerSecond);
     if (authBaseUrl && clientId) {
       if (!this.setAuthParams(authBaseUrl, clientId, clientSecret)) throw new ApiError('Failed to configure Auth Client', ErrorCode.CLIENT_CONFIGURATION_ERROR);
     }
@@ -223,8 +232,7 @@ class ApiClient {
       config['headers']['Content-Type'] = contentType ? contentType : 'application/json';
       config.data = body;
     }
-    let response = await this.axiosInstance.request(config);
-    return response;
+    return await this._sendLimited(() => this.axiosInstance.request(config));
   }
 
   /**
@@ -240,7 +248,28 @@ class ApiClient {
     };
 
     await this.addAuthorization(config);
-    return await this.axiosInstance.request(config);
+    return await this._sendLimited(() => this.axiosInstance.request(config));
+  }
+
+  async _sendLimited(send) {
+    let attempt = 0;
+
+    while (true) {
+      try {
+        return await this.requestScheduler.enqueue(send);
+      } catch (error) {
+        const status = error?.response?.status;
+        if (status !== 429 || attempt >= this.maxRetries) {
+          throw error;
+        }
+
+        attempt += 1;
+        const waitMs = retryAfterMs(error);
+        if (waitMs > 0) {
+          await delay(waitMs);
+        }
+      }
+    }
   }
 
   // Fonctions gardées pour rétro-compatibilité
